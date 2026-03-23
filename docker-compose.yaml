@@ -49,6 +49,8 @@ services:
   librechat:
     image: ghcr.io/danny-avila/librechat:latest
     container_name: librechat
+    ports:
+      - "3080:3080"
     depends_on:
       vllm:
         condition: service_healthy
@@ -73,25 +75,6 @@ services:
       - ./librechat.yaml:/app/librechat.yaml
     networks:
       - ai-network
-      - traefik-network
-    labels:
-      - "traefik.enable=true"
-
-      # Router HTTPS
-      - "traefik.http.routers.librechat.rule=Host(`librechat.local.ia.com`)"
-      - "traefik.http.routers.librechat.entrypoints=websecure"
-      - "traefik.http.routers.librechat.tls.certresolver=le"
-
-      # Puerto interno del contenedor
-      - "traefik.http.services.librechat.loadbalancer.server.port=3080"
-
-      # Redirect HTTP -> HTTPS
-      - "traefik.http.routers.librechat-http.rule=Host(`librechat.local.ia.com`)"
-      - "traefik.http.routers.librechat-http.entrypoints=web"
-      - "traefik.http.routers.librechat-http.middlewares=redirect-https"
-
-      - "traefik.http.middlewares.redirect-https.redirectscheme.scheme=https"
-
     restart: unless-stopped
 
   mongodb:
@@ -186,36 +169,10 @@ services:
       timeout: 5s
       retries: 3
 
-  traefik:
-    image: traefik:v3.0
-    container_name: traefik
-    command:
-      - --api.dashboard=true
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-      - --certificatesresolvers.le.acme.tlschallenge=true
-      - --certificatesresolvers.le.acme.email=test@dominio.com
-      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
-      - --log.level=INFO
-      - --accesslog=true
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
-    networks:
-      - traefik-network
-    restart: unless-stopped
-
 volumes:
   mongo_data:
   librechat_images:
   qdrant_storage:
 networks:
   ai-network:
-    driver: bridge
-  traefik-network:
     driver: bridge
