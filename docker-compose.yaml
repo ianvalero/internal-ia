@@ -19,12 +19,12 @@ services:
       OMP_NUM_THREADS: ${OMP_NUM_THREADS}
       VLLM_WORKER_MULTIPROC_METHOD: ${VLLM_WORKER_MULTIPROC_METHOD}
 
-      HTTP_PROXY: ${HTTP_PROXY}
-      HTTPS_PROXY: ${HTTPS_PROXY}
-      NO_PROXY: ${NO_PROXY}
-      http_proxy: ${HTTP_PROXY}
-      https_proxy: ${HTTPS_PROXY}
-      no_proxy: ${NO_PROXY}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      no_proxy: ${NO_PROXY:-}
     command: >
       TinyLlama/TinyLlama-1.1B-Chat-v1.0
       --host 0.0.0.0
@@ -141,8 +141,8 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        HTTP_PROXY: ${HTTP_PROXY}
-        HTTPS_PROXY: ${HTTPS_PROXY}
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
     container_name: cerebro
     environment:
       HF_HUB_OFFLINE: ${CEREBRO_HF_HUB_OFFLINE}
@@ -152,12 +152,12 @@ services:
       QDRANT_PORT: ${QDRANT_PORT}
       OMP_NUM_THREADS: ${CEREBRO_OMP_NUM_THREADS}
       VLLM_BASE_URL: ${VLLM_BASE_URL}
-      HTTP_PROXY: ${HTTP_PROXY}
-      HTTPS_PROXY: ${HTTPS_PROXY}
-      NO_PROXY: ${NO_PROXY}
-      http_proxy: ${HTTP_PROXY}
-      https_proxy: ${HTTPS_PROXY}
-      no_proxy: ${NO_PROXY}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      no_proxy: ${NO_PROXY:-}
     ports:
       - "9000:9000"
     depends_on:
