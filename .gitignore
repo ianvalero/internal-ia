@@ -205,13 +205,13 @@ cython_debug/
 .ruff_cache/
 
 # Hugging Face Hub
-./hf_cache/*
+hf_cache/
 
 # Personal tests
-./test/
+test/
 
 # Local Docs to Qdrant
-./docs/
+docs/
 
 # PyPI configuration file
 .pypirc
