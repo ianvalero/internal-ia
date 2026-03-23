@@ -1,3 +1,4 @@
+import torch
 from llama_index.vector_stores.qdrant import QdrantVectorStore
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core import VectorStoreIndex, PromptTemplate
@@ -36,7 +37,8 @@ _embedding = HuggingFaceEmbedding(
     model_name=settings.embedding_model_path,
     cache_folder="/root/.cache/huggingface/hub",
     local_files_only=True,
-    device="cpu",
+    device="cuda" if torch.cuda.is_available() else "cpu",
+    embed_batch_size=32,
 )
 
 _llm_cache: dict = {}

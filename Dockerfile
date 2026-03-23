@@ -1,5 +1,5 @@
 # Forzar ARM64 explícitamente
-FROM --platform=linux/arm64 python:3.11-slim
+FROM --platform=linux/arm64 dustynv/l4t-pytorch:r36.4.0
 
 WORKDIR /app
 
@@ -10,7 +10,6 @@ ENV HTTP_PROXY=$HTTP_PROXY \
     HTTPS_PROXY=$HTTPS_PROXY \
     http_proxy=$HTTP_PROXY \
     https_proxy=$HTTPS_PROXY \
-    OMP_NUM_THREADS=$CEREBRO_OMP_NUM_THREADS \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
@@ -21,7 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY cerebro/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt \
+    --ignore-installed \
+    $(grep -v -E "^torch|^nvidia|^cuda|^triton" requirements.txt | \
+      sed 's/==.*//' | tr '\n' ' ')
 
 COPY cerebro ./cerebro
 
