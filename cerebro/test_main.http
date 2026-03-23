@@ -1,0 +1,83 @@
+### Health check
+GET http://127.0.0.1:9000/health
+Accept: application/json
+
+###
+
+### List models
+GET http://127.0.0.1:9000/v1/models
+Accept: application/json
+
+###
+
+### Chat - modelo no existe (debe devolver error 400)
+POST http://127.0.0.1:9000/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "cuentos-tinyllama",
+  "messages": [
+    { "role": "user", "content": "Hola" }
+  ]
+}
+
+###
+
+### Chat - primera pregunta sin historial
+POST http://127.0.0.1:9000/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "cuentos-tinyllama",
+  "messages": [
+    { "role": "user", "content": "Que departamentos hay en Deutsche Telekom y que personas trabajan en cada uno de ellos?" }
+  ]
+}
+
+###
+
+### Chat - conversación con historial
+POST http://127.0.0.1:9000/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "cuentos-tinyllama",
+  "messages": [
+    { "role": "user", "content": "¿De qué tratan los documentos?" },
+    { "role": "assistant", "content": "Tratan sobre los tres cerditos y el lobo." },
+    { "role": "user", "content": "¿Y quién es el villano?" }
+  ]
+}
+
+###
+
+### Chat - mensaje con content como lista de partes (formato LibreChat con adjunto)
+POST http://127.0.0.1:9000/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "cuentos-tinyllama",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        { "type": "text", "text": "¿Cuál es el tema principal?" }
+      ]
+    }
+  ]
+}
+
+###
+
+### Chat - temperatura y max_tokens personalizados
+POST http://127.0.0.1:9000/v1/chat/completions
+Content-Type: application/json
+
+{
+  "model": "cuentos-tinyllama",
+  "messages": [
+    { "role": "user", "content": "Resume los documentos en una frase" }
+  ],
+  "temperature": 0.3,
+  "max_tokens": 200
+}

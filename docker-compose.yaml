@@ -1,0 +1,112 @@
+services:
+
+  vllm:
+    image: public.ecr.aws/q9t5s3a7/vllm-cpu-release-repo:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./hf_cache:/root/.cache/huggingface
+    environment:
+      VLLM_CPU_KVCACHE_SPACE: 8
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_DATASETS_OFFLINE: "1"
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NO_PROXY: ${NO_PROXY}
+      http_proxy: ${HTTP_PROXY}
+      https_proxy: ${HTTPS_PROXY}
+      no_proxy: ${NO_PROXY}
+    command: >
+      TinyLlama/TinyLlama-1.1B-Chat-v1.0
+      --host 0.0.0.0
+      --port 8000
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  librechat:
+    image: ghcr.io/danny-avila/librechat:latest
+    container_name: librechat
+    depends_on:
+      - mongodb
+      - vllm
+      - qdrant
+      - cerebro
+    ports:
+      - "3080:3080"
+    environment:
+      HOST: ${HOST}
+      PORT: ${PORT}
+      MONGO_URI: ${MONGO_URI}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      ALLOW_EMAIL_LOGIN: ${ALLOW_EMAIL_LOGIN}
+      ALLOW_REGISTRATION: ${ALLOW_REGISTRATION}
+      RAG_API_URL: ${RAG_API_URL}
+    volumes:
+      - librechat_images:/app/client/public/images
+      - ./librechat.yaml:/app/librechat.yaml
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  mongodb:
+    image: mongo:7
+    container_name: librechat-mongo
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    networks:
+      - ai-network
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  cerebro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: ${HTTP_PROXY}
+        HTTPS_PROXY: ${HTTPS_PROXY}
+    container_name: cerebro
+    environment:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_DATASETS_OFFLINE: "1"
+      HTTP_PROXY: ${HTTP_PROXY}
+      HTTPS_PROXY: ${HTTPS_PROXY}
+      NO_PROXY: ${NO_PROXY}
+      http_proxy: ${HTTP_PROXY}
+      https_proxy: ${HTTPS_PROXY}
+      no_proxy: ${NO_PROXY}
+    ports:
+      - "9000:9000"
+    depends_on:
+      - vllm
+      - qdrant
+    networks:
+      - ai-network
+    volumes:
+      - ./cerebro:/app/cerebro
+      - ./hf_cache:/root/.cache/huggingface
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
+  librechat_images:
+  qdrant_storage:
+
+networks:
+  ai-network:
+    driver: bridge
