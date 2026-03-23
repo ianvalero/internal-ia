@@ -1,0 +1,14 @@
+storage:
+  storage_path: /qdrant/storage
+
+  performance:
+    max_search_threads: 8
+    max_optimization_threads: 4
+
+  optimizers:
+    memmap_threshold_kb: 50000
+    indexing_threshold_kb: 20000
+
+service:
+  max_request_size_mb: 32
+  grpc_port: 6334
