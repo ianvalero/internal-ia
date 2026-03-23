@@ -26,9 +26,15 @@ services:
       https_proxy: ${HTTPS_PROXY:-}
       no_proxy: ${NO_PROXY:-}
     command: >
-      TinyLlama/TinyLlama-1.1B-Chat-v1.0
+      python -m vllm.entrypoints.openai.api_server
+      --model Qwen/Qwen2.5-14B-Instruct
       --host 0.0.0.0
       --port 8000
+      --dtype bfloat16
+      --max-model-len 16384
+      --gpu-memory-utilization 0.85
+      --enable-prefix-caching
+      --max-num-seqs 32
     deploy:
       resources:
         reservations:
