@@ -213,6 +213,10 @@ test/
 # Local Docs to Qdrant
 docs/
 
+# Let's Encrypt
+letsencrypt/
+
+
 # PyPI configuration file
 .pypirc
 
