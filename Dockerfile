@@ -20,10 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY cerebro/requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt \
-    --ignore-installed \
-    $(grep -v -E "^torch|^nvidia|^cuda|^triton" requirements.txt | \
-      sed 's/==.*//' | tr '\n' ' ')
+RUN pip install --no-cache-dir -r requirements-docker.txt
 
 COPY cerebro ./cerebro
 
