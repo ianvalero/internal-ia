@@ -77,15 +77,15 @@ services:
     labels:
       - "traefik.enable=true"
 
-      - # Router HTTPS
+      # Router HTTPS
       - "traefik.http.routers.librechat.rule=Host(`librechat.local.ia.com`)"
       - "traefik.http.routers.librechat.entrypoints=websecure"
       - "traefik.http.routers.librechat.tls.certresolver=le"
 
-      - # Puerto interno del contenedor
+      # Puerto interno del contenedor
       - "traefik.http.services.librechat.loadbalancer.server.port=3080"
 
-      - # Redirect HTTP -> HTTPS
+      # Redirect HTTP -> HTTPS
       - "traefik.http.routers.librechat-http.rule=Host(`librechat.local.ia.com`)"
       - "traefik.http.routers.librechat-http.entrypoints=web"
       - "traefik.http.routers.librechat-http.middlewares=redirect-https"
