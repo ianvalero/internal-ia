@@ -123,12 +123,6 @@ services:
       - qdrant_storage:/qdrant/storage
       - ./qdrant_config.yaml:/qdrant/config/production.yaml
     restart: unless-stopped
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:6333/collections || exit 1"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
-      start_period: 30s
 
   cerebro:
     build:
@@ -160,7 +154,7 @@ services:
       vllm:
         condition: service_healthy
       qdrant:
-        condition: service_healthy
+        condition: service_started
     networks:
       - ai-network
     volumes:
