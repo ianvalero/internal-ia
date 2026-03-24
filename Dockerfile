@@ -20,7 +20,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY cerebro/requirements-docker.txt .
-RUN pip install --no-cache-dir -r requirements-docker.txt
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential python3-dev \
+        && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir --index-url https://pypi.org/simple -r requirements-docker.txt
 
 COPY cerebro ./cerebro
 
