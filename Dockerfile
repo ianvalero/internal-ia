@@ -1,5 +1,5 @@
 # Forzar ARM64 explícitamente
-FROM --platform=linux/arm64 nvcr.io/nvidia/l4t-pytorch:r36.4.1-pth1.15-py3
+FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
 
 WORKDIR /app
 
@@ -26,7 +26,7 @@ COPY cerebro/requirements-docker.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential python3-dev curl \
     && rm -rf /var/lib/apt/lists/* \
-    && pip install --no-cache-dir -r requirements-docker.txt
+    && pip install --no-cache-dir --ignore-installed -r requirements-docker.txt
 
 COPY cerebro ./cerebro
 
