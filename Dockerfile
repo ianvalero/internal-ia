@@ -1,5 +1,5 @@
 # Forzar ARM64 explícitamente
-FROM nvcr.io/nvidia/l4t-pytorch:r35.2.1-pth2.0-py3
+FROM nvcr.io/nvidia/pytorch:26.02-py3
 
 WORKDIR /app
 
