@@ -1,5 +1,5 @@
 # Forzar ARM64 explícitamente
-FROM --platform=linux/arm64 dustynv/l4t-pytorch:r36.4.0
+FROM --platform=linux/arm64 nvcr.io/nvidia/l4t-pytorch:r36.4.1-pth1.15-py3
 
 WORKDIR /app
 
@@ -17,13 +17,16 @@ ENV HTTP_PROXY=$HTTP_PROXY \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     curl \
     build-essential \
+    python3-dev \
+    gfortran \
+    libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY cerebro/requirements-docker.txt .
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential python3-dev \
-        && rm -rf /var/lib/apt/lists/* \
-    && pip install --no-cache-dir --index-url https://pypi.org/simple -r requirements-docker.txt
+        build-essential python3-dev curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && pip install --no-cache-dir -r requirements-docker.txt
 
 COPY cerebro ./cerebro
 
