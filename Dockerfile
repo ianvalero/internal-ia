@@ -22,15 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libopenblas-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY cerebro/requirements-docker.txt .
+COPY cerebro/requirements.txt .
 
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        build-essential python3-dev curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && pip install --no-cache-dir --ignore-installed -r requirements-docker.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY cerebro ./cerebro
 
