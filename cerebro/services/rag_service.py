@@ -35,7 +35,6 @@ _qdrant_aclient = AsyncQdrantClient(url=settings.qdrant_url)
 
 _embedding = HuggingFaceEmbedding(
     model_name=settings.embedding_model_path,
-    cache_folder="/root/.cache/huggingface/hub",
     local_files_only=True,
     device="cuda" if torch.cuda.is_available() else "cpu",
     embed_batch_size=32,

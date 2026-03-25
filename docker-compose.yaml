@@ -159,6 +159,7 @@ services:
       - ai-network
     volumes:
       - ./cerebro:/app/cerebro
+      - ./models:/models:ro
       - ./hf_cache:/root/.cache/huggingface
     restart: unless-stopped
     deploy:
