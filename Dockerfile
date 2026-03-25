@@ -23,6 +23,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
 COPY cerebro/requirements-docker.txt .
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
 RUN apt-get update && apt-get install -y --no-install-recommends \
         build-essential python3-dev curl \
     && rm -rf /var/lib/apt/lists/* \
