@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Literal
 
 class Settings(BaseSettings):
     proxy_url: str | None = None
@@ -6,6 +7,7 @@ class Settings(BaseSettings):
     vllm_url: str
     vllm_api_key: str
     embedding_model_path: str
+    embedding_device: Literal["cpu", "cuda"] = "cpu"
 
     class Config:
         env_file = "cerebro/.env"
