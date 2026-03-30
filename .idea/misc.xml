@@ -4,4 +4,8 @@
     <option name="sdkName" value="Python 3.13.0 WSL (AlmaLinux-9): (/usr/bin/python3)" />
   </component>
   <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.13.0 WSL (AlmaLinux-9): (/home/ivalerog/PycharmProjects/mcl/ia/.venv/bin/python) (2)" project-jdk-type="Python SDK" />
+  <component name="PyreflyConfiguration">
+    <option name="enabled" value="true" />
+    <option name="sdkName" value="/usr/bin/python3" />
+  </component>
 </project>

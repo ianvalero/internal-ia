@@ -1,27 +1,43 @@
-from fastapi import APIRouter
-import httpx
-from cerebro.services.rag_service import _qdrant_aclient
+from fastapi import APIRouter, Request
+import asyncio
+
 from cerebro.config.settings import settings
+from cerebro.config.model import registry
+from cerebro.services.health_service import HealthService
 
 router = APIRouter()
 
 @router.get("/health")
-async def health():
-    status = {"Qdrant": "error", "vllm": "error"}
+async def health(request_obj: Request):
+    models = registry.all()
+    rag_service = request_obj.app.state.rag_service
 
-    try:
-        await _qdrant_aclient.get_collections()
-        status["Qdrant"] = "ok"
-    except Exception as err:
-        print(f"Qdrant error: {err}")
+    qdrant_task = HealthService.check_qdrant(rag_service)
+    langfuse_task = HealthService.check_langfuse(settings.langfuse_url)
+    llm_task = HealthService.check_llm_models(models)
 
-    try:
-        async with httpx.AsyncClient() as client:
-            response = await client.get(f"{settings.vllm_url}/models", timeout=2.0)
-            if response.status_code == 200:
-                status["vllm"] = "ok"
-    except Exception as err:
-        print(f"vLLM error: {err}")
+    qdrant_status, langfuse_status, llm_status = await asyncio.gather(
+        qdrant_task,
+        langfuse_task,
+        llm_task
+    )
 
-    overall_status = "ok" if all(service == "ok" for service in status.values()) else "degraded"
-    return {"status": overall_status, "services": status}
+    status = {
+        "Qdrant": qdrant_status,
+        "Langfuse": langfuse_status,
+        "llm_models": llm_status
+    }
+
+    llm_ok = all(v == "ok" for v in llm_status.values())
+
+    if qdrant_status != "ok":
+        overall = "down"
+    elif not llm_ok or langfuse_status != "ok":
+        overall = "degraded"
+    else:
+        overall = "ok"
+
+    return {
+        "status": overall,
+        "services": status
+    }

@@ -15,3 +15,7 @@ endpoints:
       titleMessageRole: "user"
       summarize: false
       summaryModel: "current_model"
+      headers:
+        X-User-ID: "{{LIBRECHAT_USER_ID}}"
+        X-User-Name: "{{LIBRECHAT_USER_NAME}}"
+        X-User-Email: "{{LIBRECHAT_USER_EMAIL}}"

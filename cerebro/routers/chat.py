@@ -1,9 +1,13 @@
 import time
 import json
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Header, Request
 from fastapi.responses import StreamingResponse
+from langfuse import propagate_attributes
+
+from cerebro.config.model import registry
 from cerebro.models.schema import ChatRequest
-from cerebro.services.rag_service import get_rag_response, CONFIGS
+from cerebro.services.llm_service import LLMService
+from cerebro.services.rag_service import RAGService
 
 router = APIRouter(prefix="/v1")
 
@@ -44,17 +48,79 @@ async def stream_response(response_text: str, model: str):
     yield "data: [DONE]\n\n"
 
 @router.post("/chat/completions", tags=["chat"], response_model=dict, summary="Chat completions")
-async def chat(request: ChatRequest):
-    if request.model not in CONFIGS:
+async def chat(
+        request: ChatRequest,
+        request_obj: Request,
+        x_user_id: str = Header(None),
+        x_user_name: str = Header(None),
+        x_user_email: str = Header(None)
+):
+    model = registry.get(name=request.model)
+    if model is None:
         raise HTTPException(
             status_code=400,
-            detail=f"Model '{request.model}' not found. Available: {list(CONFIGS.keys())}"
+            detail=f"Model '{request.model}' not found in registry. Available: {list(registry.all().keys())}"
         )
 
-    response_text = await get_rag_response(
-        model_name=request.model,
-        messages=request.messages,
-    )
+    langfuse = request_obj.app.state.langfuse
+    rag_service: RAGService = request_obj.app.state.rag_service
+    llm_service: LLMService = request_obj.app.state.llm_service
+    user_id = x_user_id or "anonymous"
+    query = request.messages[-1].content if request.messages else ""
+
+    with langfuse.start_as_current_observation(as_type="span", name="chat-request") as root:
+        with propagate_attributes(
+            user_id=user_id,
+            session_id=request.session_id,
+            metadata={
+                "user_name": x_user_name,
+                "user_email": x_user_email,
+            },
+            tags=[model.collection, x_user_name]
+        ):
+            root.update(
+                tags=["env:production", f"model:{model.llm.model}", f"collection:{model.collection}"]
+            )
+
+            with langfuse.start_as_current_observation(as_type="span", name="rag-retrieval") as rag_span:
+                nodes = await rag_service.retrieve(model_name=request.model, query=query)
+                rag_span.update(
+                    input={"query": query},
+                    output={
+                        "chunks": len(nodes),
+                        "sources": [
+                            {
+                                "file_name": node.metadata.get("file_name"),
+                                "score": node.score,
+                                "file_path": node.metadata.get("file_path"),
+                                "last_modified_date": node.metadata.get("last_modified_date")
+                            }
+                            for node in nodes
+                        ]
+                    }
+                )
+
+            with langfuse.start_as_current_observation(as_type="span", name="llm-generation") as llm_span:
+                response_text = await llm_service.generate(
+                    model_name=request.model,
+                    query=query,
+                    nodes=nodes,
+                    history=""
+                )
+                llm_span.update(
+                    input={"query": query, "chunks_used": len(nodes), "model_name": model.llm.model},
+                    output={"response": response_text}
+                )
+
+            root.set_trace_io(
+                input={"query": query},
+                output={
+                    "response": str(response_text),
+                    "chunks_used": len(nodes),
+                    "collection": model.collection,
+                    "model_name": model.llm.model
+                }
+            )
 
     # LibreChat siempre espera streaming
     return StreamingResponse(

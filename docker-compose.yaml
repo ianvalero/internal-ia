@@ -82,7 +82,7 @@ services:
       NODE_OPTIONS: ${NODE_OPTIONS}
     volumes:
       - librechat_images:/app/client/public/images
-      - ./librechat.yaml:/app/librechat.yaml
+      - ./librechat/librechat.yaml:/app/librechat.yaml
     networks:
       - ai-network
     restart: unless-stopped

@@ -1,5 +1,6 @@
 # Forzar ARM64 explícitamente
-FROM nvcr.io/nvidia/pytorch:26.02-py3
+#FROM nvcr.io/nvidia/pytorch:26.02-py3
+FROM python:3.11-slim
 
 WORKDIR /app
 
@@ -14,13 +15,13 @@ ENV HTTP_PROXY=$HTTP_PROXY \
     PYTHONDONTWRITEBYTECODE=1
 
 # Dependencias del sistema para ARM64
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    curl \
-    build-essential \
-    python3-dev \
-    gfortran \
-    libopenblas-dev \
-    && rm -rf /var/lib/apt/lists/*
+#RUN apt-get update && apt-get install -y --no-install-recommends \
+#    curl \
+#    build-essential \
+#    python3-dev \
+#    gfortran \
+#    libopenblas-dev \
+#    && rm -rf /var/lib/apt/lists/*
 
 COPY cerebro/requirements.txt .
 
