@@ -25,6 +25,7 @@ class Model(BaseModel):
     name: str
     collection: str
     context_window: int
+    chat_template: str = "default"
     llm: LLMConfig
 
 class ModelRegistry:

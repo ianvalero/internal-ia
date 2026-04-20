@@ -10,12 +10,17 @@ endpoints:
       models:
         default: ["cuentos-tinyllama"]
         fetch: true
-      titleConvo: true
+      titleConvo: false
       titleModel: "current_model"
+      titleMethod: "completion"
       titleMessageRole: "user"
+      titlePrompt: |
+        Provide a concise title (5 words max) for this conversation. Only return the title, nothing else:
+        {convo}"
       summarize: false
       summaryModel: "current_model"
       headers:
         X-User-ID: "{{LIBRECHAT_USER_ID}}"
         X-User-Name: "{{LIBRECHAT_USER_NAME}}"
         X-User-Email: "{{LIBRECHAT_USER_EMAIL}}"
+        X-Conversation-ID: "{{LIBRECHAT_BODY_CONVERSATIONID}}"

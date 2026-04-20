@@ -6,7 +6,7 @@ from langfuse import get_client
 
 from cerebro.config.loader import load_models
 from cerebro.config.model import registry
-from cerebro.routers import chat, health
+from cerebro.routers import chat, health, model
 from cerebro.services.rag_service import RAGService
 from cerebro.services.llm_service import LLMService
 
@@ -45,3 +45,4 @@ LlamaIndexInstrumentor().instrument()
 langfuse = get_client()
 app.include_router(chat.router)
 app.include_router(health.router)
+app.include_router(model.router)

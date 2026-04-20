@@ -7,16 +7,23 @@ class LLMService:
     def __init__(self):
         self._llm_cache: dict = {}
 
-    async def generate(self, model_name: str, query: str, nodes: list = None, history: str = "") -> str:
+    async def generate(self, model_name: str, query: str, nodes: list = None, history: list = None) -> str:
         if nodes is None:
             nodes = []
+        if history is None:
+            history = []
 
         context = "\n\n".join([node.get_content() for node in nodes])
 
-        template = self._get_qa_template()
+        history_text = "\n".join([
+            f"{'user' if msg.role == 'user' else 'assistant'}: {msg.content}"
+            for msg in history
+        ]) if history else ""
+
+        template = self._get_qa_template(chat_template=registry.get(model_name).chat_template)
         prompt = template.format(
             context_str=context,
-            history=history,
+            history_str=history_text,
             query_str=query
         )
 
@@ -40,12 +47,23 @@ class LLMService:
         )
         return self._llm_cache[model_name]
 
-    def _get_qa_template(self):
-        return PromptTemplate(
-            "Usa el siguiente contexto para responder la pregunta.\n"
-            "Recuerda el historial de la conversación si es relevante.\n\n"
-            "Contexto:\n{context_str}\n\n"
-            "Historial:\n{history}\n\n"
-            "Pregunta: {query_str}\n"
-            "Respuesta:"
-        )
+    def _get_qa_template(self, chat_template: str) -> PromptTemplate:
+        templates = {
+            "tinyllama": PromptTemplate(
+                "<|system|>\nEres un asistente que responde basándose en el contexto.</s>\n"
+                "<|user|>\nContexto:\n{context_str}\n\nHistorial:\n{history_str}\n\nPregunta: {query_str}</s>\n"
+                "<|assistant|>\n"
+            ),
+            "qwen": PromptTemplate(
+                "<|im_start|>system\nEres un asistente que responde basándose en el contexto.<|im_end|>\n"
+                "<|im_start|>user\nContexto:\n{context_str}\n\nHistorial:\n{history_str}\n\nPregunta: {query_str}<|im_end|>\n"
+                "<|im_start|>assistant\n"
+            ),
+            "default": PromptTemplate(
+                "Contexto:\n{context_str}\n\n"
+                "Historial:\n{history_str}\n\n"
+                "Pregunta: {query_str}\n"
+                "Respuesta:"
+            ),
+        }
+        return templates.get(chat_template, templates["default"])

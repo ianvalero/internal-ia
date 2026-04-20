@@ -12,7 +12,6 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     model: str
     messages: list[Message]
-    temperature: float = 0.7
     max_tokens: int = 1024
     session_id: str | None = None
     user: str | None = None
