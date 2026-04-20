@@ -1,0 +1,199 @@
+services:
+
+  vllm:
+    image: public.ecr.aws/q9t5s3a7/vllm-cpu-release-repo:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./models:/models:ro
+    environment:
+      VLLM_CPU_KVCACHE_SPACE: 8
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_DATASETS_OFFLINE: "1"
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      no_proxy: ${NO_PROXY:-}
+    command: >
+      /models/TinyLlama-1.1B-Chat-v1.0
+      --host 0.0.0.0
+      --port 8000
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  librechat-mongodb:
+    image: mongo:7
+    container_name: librechat-mongo
+    volumes:
+      - mongo_data:/data/db
+    ports:
+      - "27017:27017"
+    environment:
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+    command: >
+      mongod
+      --wiredTigerCacheSizeGB 4
+      --bind_ip_all
+    networks:
+      - ai-network
+    restart: unless-stopped
+
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    networks:
+      - ai-network
+    volumes:
+      - qdrant_storage:/qdrant/storage
+    restart: unless-stopped
+
+  cerebro:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        HTTP_PROXY: ${HTTP_PROXY:-}
+        HTTPS_PROXY: ${HTTPS_PROXY:-}
+    container_name: cerebro
+    environment:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      HF_DATASETS_OFFLINE: "1"
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      no_proxy: ${NO_PROXY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL}
+    ports:
+      - "9000:9000"
+    depends_on:
+      vllm:
+        condition: service_started
+      qdrant:
+        condition: service_started
+    networks:
+      - ai-network
+      - langfuse-network
+    volumes:
+      - ./cerebro:/app/cerebro
+      - ./models:/models:ro
+      - ./models.yaml:/app/cerebro/config/models.yaml
+    restart: unless-stopped
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    environment:
+      - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@langfuse-postgres:5432/langfuse
+      - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=http://localhost:3000
+      - SALT=${LANGFUSE_SALT}
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}  # openssl rand -hex 32
+      - CLICKHOUSE_URL=http://langfuse-clickhouse:8123
+      - REDIS_HOST=langfuse-redis
+      - REDIS_AUTH=
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://langfuse-minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=minio
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://langfuse-clickhouse:9000
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+    networks:
+      - langfuse-network
+
+  langfuse-postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=${LANGFUSE_PG_PASSWORD}
+      - POSTGRES_DB=langfuse
+    ports:
+      - "5432:5432"
+    volumes:
+      - langfuse_postgres:/var/lib/postgresql/data
+    networks:
+      - langfuse-network
+
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:24
+    ports:
+      - "8123"
+      - "9000"
+    cap_add:
+      - SYS_NICE
+    environment:
+      - TZ=UTC
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    networks:
+      - langfuse-network
+
+  langfuse-redis:
+    image: redis:7
+    networks:
+      - langfuse-network
+    ports:
+      - "6379:6379"
+
+  langfuse-minio:
+    image: minio/minio
+    command: server /data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
+    volumes:
+      - langfuse_minio:/data
+    ports:
+      - "9000:9000"
+    networks:
+      - langfuse-network
+
+  langfuse-minio-init:
+    image: minio/mc
+    depends_on:
+      - langfuse-minio
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://langfuse-minio:9000 ${MINIO_ROOT_USER} ${MINIO_PASSWORD}; do
+        echo 'waiting for minio...';
+        sleep 2;
+      done;
+      mc mb -p local/langfuse;
+      exit 0;
+      "
+    networks:
+      - langfuse-network
+
+volumes:
+  mongo_data:
+  librechat_images:
+  qdrant_storage:
+  flashinfer-cache:
+  langfuse_postgres:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_minio:
+
+networks:
+  langfuse-network:
+  ai-network:
+    driver: bridge
