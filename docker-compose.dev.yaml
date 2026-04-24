@@ -247,6 +247,7 @@ services:
 
 volumes:
   mongo_data:
+  librechat_images:
   qdrant_storage:
   flashinfer-cache:
   vllm-cache:

@@ -76,7 +76,7 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL}
     ports:
-      - "9000:9000"
+      - "9001:9000"
     depends_on:
       vllm:
         condition: service_started
@@ -132,8 +132,8 @@ services:
   langfuse-clickhouse:
     image: clickhouse/clickhouse-server:24
     ports:
-      - "8123"
-      - "9000"
+      - "8123:8123"
+      - "9002:9000"
     cap_add:
       - SYS_NICE
     environment:
