@@ -19,8 +19,8 @@ services:
       no_proxy: ${NO_PROXY:-}
     command: >
       /models/TinyLlama-1.1B-Chat-v1.0
-      --host 0.0.0.0
-      --port 8000
+      --host ${VLLM_HOST}
+      --port ${VLLM_PORT}
     networks:
       - ai-network
     restart: unless-stopped
@@ -63,9 +63,9 @@ services:
         HTTPS_PROXY: ${HTTPS_PROXY:-}
     container_name: cerebro
     environment:
-      HF_HUB_OFFLINE: "1"
-      TRANSFORMERS_OFFLINE: "1"
-      HF_DATASETS_OFFLINE: "1"
+      HF_HUB_OFFLINE: ${CEREBRO_HF_HUB_OFFLINE:-1}
+      TRANSFORMERS_OFFLINE: ${CEREBRO_TRANSFORMERS_OFFLINE:-1}
+      HF_DATASETS_OFFLINE: ${CEREBRO_HF_DATASETS_OFFLINE:-1}
       HTTP_PROXY: ${HTTP_PROXY:-}
       HTTPS_PROXY: ${HTTPS_PROXY:-}
       NO_PROXY: ${NO_PROXY:-}
@@ -96,7 +96,7 @@ services:
     environment:
       - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@langfuse-postgres:5432/langfuse
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://${FRONTEND_HOST}:3000
       - SALT=${LANGFUSE_SALT}
       - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}  # openssl rand -hex 32
       - CLICKHOUSE_URL=http://langfuse-clickhouse:8123
