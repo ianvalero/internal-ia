@@ -34,7 +34,8 @@ services:
       - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}  # openssl rand -hex 32
       - CLICKHOUSE_URL=http://${BACKEND_HOST}:8123
       #- CLICKHOUSE_URL=clickhouse://langfuse-clickhouse:9000
-      - REDIS_HOST=http://${BACKEND_HOST}:6379
+      - REDIS_HOST=http:${BACKEND_HOST}
+      - REDIS_PORT=6379
       - REDIS_AUTH=
       - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
       - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://${BACKEND_HOST}:9000
