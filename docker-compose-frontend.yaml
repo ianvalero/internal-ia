@@ -34,7 +34,7 @@ services:
       - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}  # openssl rand -hex 32
       - CLICKHOUSE_URL=http://${BACKEND_HOST}:8123
       #- CLICKHOUSE_URL=clickhouse://langfuse-clickhouse:9000
-      - REDIS_HOST=http:${BACKEND_HOST}
+      - REDIS_HOST=${BACKEND_HOST}
       - REDIS_PORT=6379
       - REDIS_AUTH=
       - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
@@ -47,7 +47,7 @@ services:
       - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
       - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
       # CLICKHOUSE_MIGRATION_URL=http://langfuse-clickhouse:8123
-      - CLICKHOUSE_MIGRATION_URL=clickhouse://${BACKEND_HOST}:9002
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${BACKEND_HOST}:9002/${CLICKHOUSE_DATABASE}
       - CLICKHOUSE_CLUSTER_ENABLED=false
     networks:
       - langfuse-network
