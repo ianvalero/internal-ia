@@ -1,8 +1,9 @@
+version: '3.8'
+
 services:
 
   librechat-mongodb:
     image: mongo:7
-    container_name: librechat-mongo
     volumes:
       - mongo_data:/data/db
     ports:
@@ -15,11 +16,12 @@ services:
       --bind_ip_all
     networks:
       - ai-network
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
 
   qdrant:
     image: qdrant/qdrant
-    container_name: qdrant
     ports:
       - "6333:6333"
       - "6334:6334"
@@ -27,16 +29,12 @@ services:
       - ai-network
     volumes:
       - qdrant_storage:/qdrant/storage
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
 
   cerebro:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        HTTP_PROXY: ${HTTP_PROXY:-}
-        HTTPS_PROXY: ${HTTPS_PROXY:-}
-    container_name: cerebro
+    image: tu-registro-docker/cerebro:latest 
     environment:
       HF_HUB_OFFLINE: ${CEREBRO_HF_HUB_OFFLINE:-1}
       TRANSFORMERS_OFFLINE: ${CEREBRO_TRANSFORMERS_OFFLINE:-1}
@@ -52,11 +50,6 @@ services:
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL}
     ports:
       - "9001:9000"
-    depends_on:
-      vllm:
-        condition: service_started
-      qdrant:
-        condition: service_started
     networks:
       - ai-network
       - langfuse-network
@@ -64,7 +57,9 @@ services:
       - ./cerebro:/app/cerebro
       - ./models:/models:ro
       - ./models.yaml:/app/cerebro/config/models.yaml
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
 
   langfuse-worker:
     image: langfuse/langfuse-worker:3
@@ -73,7 +68,7 @@ services:
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
       - NEXTAUTH_URL=http://${FRONTEND_HOST}:3000
       - SALT=${LANGFUSE_SALT}
-      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}  # openssl rand -hex 32
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
       - CLICKHOUSE_URL=http://langfuse-clickhouse:8123
       - REDIS_HOST=langfuse-redis
       - REDIS_AUTH=
@@ -90,6 +85,9 @@ services:
       - CLICKHOUSE_CLUSTER_ENABLED=false
     networks:
       - langfuse-network
+    deploy:
+      restart_policy:
+        condition: any
 
   langfuse-postgres:
     image: postgres:16
@@ -103,14 +101,19 @@ services:
       - langfuse_postgres:/var/lib/postgresql/data
     networks:
       - langfuse-network
+    deploy:
+      restart_policy:
+        condition: any
 
   langfuse-clickhouse:
     image: clickhouse/clickhouse-server:24
     ports:
       - "8123:8123"
       - "9002:9000"
-    cap_add:
-      - SYS_NICE
+    # cap_add suele ser ignorado por Swarm por motivos de seguridad.
+    # Si la imagen falla sin SYS_NICE, requerirá configuración adicional a nivel de demonio Docker.
+#    cap_add:
+#      - SYS_NICE
     environment:
       - TZ=UTC
       - CLICKHOUSE_USER=${CLICKHOUSE_USER}
@@ -121,6 +124,9 @@ services:
       - langfuse_clickhouse_logs:/var/log/clickhouse-server
     networks:
       - langfuse-network
+    deploy:
+      restart_policy:
+        condition: any
 
   langfuse-redis:
     image: redis:7
@@ -128,6 +134,9 @@ services:
       - langfuse-network
     ports:
       - "6379:6379"
+    deploy:
+      restart_policy:
+        condition: any
 
   langfuse-minio:
     image: minio/minio
@@ -141,11 +150,12 @@ services:
       - "9000:9000"
     networks:
       - langfuse-network
+    deploy:
+      restart_policy:
+        condition: any
 
   langfuse-minio-init:
     image: minio/mc
-    depends_on:
-      - langfuse-minio
     entrypoint: >
       /bin/sh -c "
       until mc alias set local http://langfuse-minio:9000 ${MINIO_ROOT_USER} ${MINIO_PASSWORD}; do
@@ -157,6 +167,10 @@ services:
       "
     networks:
       - langfuse-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
 
 volumes:
   mongo_data:
@@ -169,5 +183,6 @@ volumes:
 
 networks:
   langfuse-network:
+    driver: overlay
   ai-network:
-    driver: bridge
+    driver: overlay

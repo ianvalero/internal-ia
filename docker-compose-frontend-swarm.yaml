@@ -1,8 +1,9 @@
+version: '3.8'
+
 services:
 
   librechat:
     image: ghcr.io/danny-avila/librechat:latest
-    container_name: librechat
     ports:
       - "3080:3080"
     environment:
@@ -20,7 +21,9 @@ services:
       - ./librechat/librechat.yaml:/app/librechat.yaml
     networks:
       - ai-network
-    restart: unless-stopped
+    deploy:
+      restart_policy:
+        condition: any
 
   langfuse-web:
     image: langfuse/langfuse:3
@@ -31,7 +34,7 @@ services:
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
       - NEXTAUTH_URL=http://${FRONTEND_HOST}:3000
       - SALT=${LANGFUSE_SALT}
-      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}  # openssl rand -hex 32
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
       - CLICKHOUSE_URL=http://${BACKEND_HOST}:8123
       #- CLICKHOUSE_URL=clickhouse://langfuse-clickhouse:9000
       - REDIS_HOST=${BACKEND_HOST}
@@ -39,7 +42,7 @@ services:
       - REDIS_AUTH=
       - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
       - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://${BACKEND_HOST}:9000
-      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=${MINIO_ROOT_USER}
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=minio
       - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_PASSWORD}
       - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
       - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
@@ -57,11 +60,15 @@ services:
       timeout: 10s
       retries: 5
       start_period: 100s
+    deploy:
+      restart_policy:
+        condition: any
 
 volumes:
   librechat_images:
 
 networks:
   langfuse-network:
+    driver: overlay
   ai-network:
-    driver: bridge
+    driver: overlay
