@@ -58,7 +58,7 @@ services:
       start_period: 600s
 
   vllm-embedding:
-    image: hellohal2064/vllm-dgx-spark-gb10:latest
+    image: vllm/vllm-openai:latest
     runtime: nvidia
     ports:
       - "8001:8001"
@@ -74,26 +74,20 @@ services:
       HF_HUB_OFFLINE: 1
       TRANSFORMERS_OFFLINE: 1
       ATTENTION_BACKEND: FLASHINFER
-      MODEL_PATH: ${EMBEDDING_MODEL_PATH}
       OMP_NUM_THREADS: ${EMBEDDING_OMP_NUM_THREADS}
-
-      HTTP_PROXY: ${HTTP_PROXY:-}
-      HTTPS_PROXY: ${HTTPS_PROXY:-}
-      NO_PROXY: ${NO_PROXY:-}
-      http_proxy: ${HTTP_PROXY:-}
-      https_proxy: ${HTTPS_PROXY:-}
-      no_proxy: ${NO_PROXY:-}
-
-    command: >
-      --host ${VLLM_EMBEDDING_HOST}
-      --port ${VLLM_EMBEDDING_PORT}
-      --task embed
-      --dtype ${EMBEDDING_DTYPE}
-      --max-model-len ${EMBEDDING_MAX_MODEL_LEN}
-      --gpu-memory-utilization ${EMBEDDING_GPU_MEMORY_UTIL}
-      --trust-remote-code
-      --served-model-name embedding
-      --uvicorn-log-level warning
+    command:
+      - --host
+      - ${VLLM_EMBEDDING_HOST}
+      - --port
+      - ${VLLM_EMBEDDING_PORT}
+      - --model
+      - ${EMBEDDING_MODEL_PATH}
+      - --dtype
+      - ${EMBEDDING_DTYPE}
+      - --gpu-memory-utilization
+      - ${EMBEDDING_GPU_MEMORY_UTIL}
+      - --max-model-len
+      - ${EMBEDDING_MAX_MODEL_LEN}
     networks:
       - ai-network
     restart: unless-stopped
