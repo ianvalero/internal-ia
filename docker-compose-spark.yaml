@@ -1,7 +1,7 @@
 services:
 
   vllm:
-    image: hellohal2064/vllm-dgx-spark-gb10:latest
+    image: vllm/vllm-openai:latest
     runtime: nvidia
     ports:
       - "8000:8000"
@@ -16,12 +16,12 @@ services:
       NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES}
 
       HF_HUB_OFFLINE: ${HF_HUB_OFFLINE}
-      TRANSFORMERS_OFFLINE: ${TRANSFORMERS_OFFLINE}
+      TRANSFORMERS_OFFLINE: ${HF_TRANSFORMERS_OFFLINE}
       HF_DATASETS_OFFLINE: ${HF_DATASETS_OFFLINE}
 
-      OMP_NUM_THREADS: ${OMP_NUM_THREADS}
+      OMP_NUM_THREADS: ${VLLM_OMP_NUM_THREADS}
       VLLM_WORKER_MULTIPROC_METHOD: ${VLLM_WORKER_MULTIPROC_METHOD}
-      TOKENIZERS_PARALLELISM: ${TOKENIZERS_PARALLELISM}
+      TOKENIZERS_PARALLELISM: ${VLLM_TOKENIZERS_PARALLELISM}
 
       HTTP_PROXY: ${HTTP_PROXY:-}
       HTTPS_PROXY: ${HTTPS_PROXY:-}
@@ -29,21 +29,19 @@ services:
       http_proxy: ${HTTP_PROXY:-}
       https_proxy: ${HTTPS_PROXY:-}
       no_proxy: ${NO_PROXY:-}
-
-      MODEL_PATH: ${MODEL_PATH}
-      MAX_MODEL_LEN: ${MAX_MODEL_LEN}
-      GPU_MEMORY_UTIL: ${GPU_MEMORY_UTIL}
-      ATTENTION_BACKEND: ${ATTENTION_BACKEND}
+      
+      ATTENTION_BACKEND: FLASHINFER
       HOST: ${VLLM_HOST}
       PORT: ${VLLM_PORT}
     command: >
       --host  ${VLLM_HOST}
       --port ${VLLM_PORT}
-      --dtype bfloat16
-      --max-model-len ${MAX_MODEL_LEN}
-      --gpu-memory-utilization ${GPU_MEMORY_UTIL}
+      --model ${VLLM_MODEL_PATH}
+      --dtype ${VLLM_DTYPE}
+      --max-model-len ${VLLM_MAX_MODEL_LEN}
+      --gpu-memory-utilization ${VLLM_GPU_MEMORY_UTIL}
       --enable-prefix-caching
-      --max-num-seqs ${MAX_NUM_SEQS}
+      --max-num-seqs ${VLLM_MAX_NUM_SEQS}
       --reasoning-parser ""
       --default-chat-template-kwargs '{"enable_thinking": false}'
       --served-model-name qwen2.5-14b
@@ -71,28 +69,25 @@ services:
       CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES}
       NVIDIA_DRIVER_CAPABILITIES: ${NVIDIA_DRIVER_CAPABILITIES}
-      HF_HUB_OFFLINE: 1
-      TRANSFORMERS_OFFLINE: 1
+
+      HF_HUB_OFFLINE: ${HF_HUB_OFFLINE}
+      TRANSFORMERS_OFFLINE: ${HF_TRANSFORMERS_OFFLINE}
+      HF_DATASETS_OFFLINE: ${HF_DATASETS_OFFLINE}
+
       ATTENTION_BACKEND: FLASHINFER
       OMP_NUM_THREADS: ${EMBEDDING_OMP_NUM_THREADS}
-    command:
-      - --host
-      - ${VLLM_EMBEDDING_HOST}
-      - --port
-      - ${VLLM_EMBEDDING_PORT}
-      - --model
-      - ${EMBEDDING_MODEL_PATH}
-      - --dtype
-      - ${EMBEDDING_DTYPE}
-      - --gpu-memory-utilization
-      - ${EMBEDDING_GPU_MEMORY_UTIL}
-      - --max-model-len
-      - ${EMBEDDING_MAX_MODEL_LEN}
+    command: >
+      --host ${EMBEDDING_HOST}
+      --port ${EMBEDDING_PORT}
+      --model ${EMBEDDING_MODEL_PATH}
+      --dtype ${EMBEDDING_DTYPE}
+      --gpu-memory-utilization ${EMBEDDING_GPU_MEMORY_UTIL}
+      --max-model-len ${EMBEDDING_MAX_MODEL_LEN}
     networks:
       - ai-network
     restart: unless-stopped
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:${VLLM_EMBEDDING_PORT}/health" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:${EMBEDDING_PORT}/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
