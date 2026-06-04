@@ -53,8 +53,6 @@ services:
     ports:
       - "9001:9000"
     depends_on:
-      vllm:
-        condition: service_started
       qdrant:
         condition: service_started
     networks:
