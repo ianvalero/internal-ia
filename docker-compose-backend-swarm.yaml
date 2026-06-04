@@ -33,34 +33,34 @@ services:
       restart_policy:
         condition: any
 
-#  cerebro:
-#    image: tu-registro-docker/cerebro:latest
-#    environment:
-#      HF_HUB_OFFLINE: ${CEREBRO_HF_HUB_OFFLINE:-1}
-#      TRANSFORMERS_OFFLINE: ${CEREBRO_TRANSFORMERS_OFFLINE:-1}
-#      HF_DATASETS_OFFLINE: ${CEREBRO_HF_DATASETS_OFFLINE:-1}
-#      HTTP_PROXY: ${HTTP_PROXY:-}
-#      HTTPS_PROXY: ${HTTPS_PROXY:-}
-#      NO_PROXY: ${NO_PROXY:-}
-#      http_proxy: ${HTTP_PROXY:-}
-#      https_proxy: ${HTTPS_PROXY:-}
-#      no_proxy: ${NO_PROXY:-}
-#      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
-#      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
-#      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL}
-#    ports:
-#      - "9001:9000"
-#    networks:
-#      - ai-network
-#      - langfuse-network
-#    volumes:
-#      - ./cerebro:/app/cerebro
-#      - ./models:/models:ro
-#      - ./models.yaml:/app/cerebro/config/models.yaml
-#    deploy:
-#      restart_policy:
-#        condition: any
-#
+  cerebro:
+    image: tu-registro-docker/cerebro:latest
+    environment:
+      HF_HUB_OFFLINE: ${CEREBRO_HF_HUB_OFFLINE:-1}
+      TRANSFORMERS_OFFLINE: ${CEREBRO_TRANSFORMERS_OFFLINE:-1}
+      HF_DATASETS_OFFLINE: ${CEREBRO_HF_DATASETS_OFFLINE:-1}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: ${NO_PROXY:-}
+      http_proxy: ${HTTP_PROXY:-}
+      https_proxy: ${HTTPS_PROXY:-}
+      no_proxy: ${NO_PROXY:-}
+      LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL}
+    ports:
+      - "9001:9000"
+    networks:
+      - ai-network
+      - langfuse-network
+    volumes:
+      - ./cerebro:/app/cerebro
+      - ./models:/models:ro
+      - ./models.yaml:/app/cerebro/config/models.yaml
+    deploy:
+      restart_policy:
+        condition: any
+
 #  langfuse-worker:
 #    image: langfuse/langfuse-worker:3
 #    environment:
