@@ -86,6 +86,7 @@ services:
     networks:
       - langfuse-network
     deploy:
+      replicas: 0
       restart_policy:
         condition: any
 
