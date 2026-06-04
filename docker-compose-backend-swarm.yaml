@@ -34,7 +34,7 @@ services:
         condition: any
 
   cerebro:
-    image: tu-registro-docker/cerebro:latest
+    image: ia-cerebro:latest
     environment:
       HF_HUB_OFFLINE: ${CEREBRO_HF_HUB_OFFLINE:-1}
       TRANSFORMERS_OFFLINE: ${CEREBRO_TRANSFORMERS_OFFLINE:-1}
