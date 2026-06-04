@@ -68,6 +68,7 @@ services:
 
   langfuse-worker:
     image: langfuse/langfuse-worker:3
+    profiles: ["langfuse-worker"]
     environment:
       - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@langfuse-postgres:5432/langfuse
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
@@ -93,6 +94,7 @@ services:
 
   langfuse-postgres:
     image: postgres:16
+    profiles: ["langfuse"]
     environment:
       - POSTGRES_USER=langfuse
       - POSTGRES_PASSWORD=${LANGFUSE_PG_PASSWORD}
@@ -106,6 +108,7 @@ services:
 
   langfuse-clickhouse:
     image: clickhouse/clickhouse-server:24
+    profiles: ["langfuse"]
     ports:
       - "8123:8123"
       - "9002:9000"
@@ -124,6 +127,7 @@ services:
 
   langfuse-redis:
     image: redis:7
+    profiles: ["langfuse"]
     networks:
       - langfuse-network
     ports:
@@ -131,6 +135,7 @@ services:
 
   langfuse-minio:
     image: minio/minio
+    profiles: ["langfuse"]
     command: server /data
     environment:
       - MINIO_ROOT_USER=${MINIO_ROOT_USER}
@@ -144,6 +149,7 @@ services:
 
   langfuse-minio-init:
     image: minio/mc
+    profiles: ["langfuse"]
     depends_on:
       - langfuse-minio
     entrypoint: >
