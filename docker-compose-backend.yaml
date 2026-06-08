@@ -172,6 +172,6 @@ volumes:
 #  langfuse_minio:
 
 networks:
-#  langfuse-network:
+  langfuse-network:
   ai-network:
     driver: bridge

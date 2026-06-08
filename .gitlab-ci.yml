@@ -1,0 +1,27 @@
+
+stages:
+  - build
+
+variables:
+  IMAGE_NAME: $NEXUS_REGISTRY/ia-cerebro
+
+build-and-push:
+  stage: build
+  image: docker:24
+  services:
+    - name: docker:24-dind
+      command: ["--storage-driver=vfs"]
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    DOCKER_DRIVER: vfs
+  before_script:
+    - docker login -u $NEXUS_USER -p $NEXUS_PASSWORD $NEXUS_REGISTRY
+  script:
+    - docker build -f Dockerfile --tag $IMAGE_NAME:$CI_COMMIT_SHORT_SHA -t $IMAGE_NAME:latest --no-cache --build-arg PIP_INDEX_URL=https://nexustc.t-systems.es/repository/python-group/simple/ --build-arg PIP_TRUSTED_HOST=nexustc.t-systems.es --build-arg HTTP_PROXY=http://14.10.73.85:8080 --build-arg HTTPS_PROXY=http://14.10.73.85:8080 --build-arg NO_PROXY=nexustc.t-systems.es,registrytc.t-systems.es .
+    - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
+    - docker push $IMAGE_NAME:latest
+    - docker rmi $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:latest
+  after_script:
+    - docker logout $NEXUS_REGISTRY
+  only:
+    - refactor/docker-compose-separation
