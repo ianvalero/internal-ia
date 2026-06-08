@@ -12,15 +12,6 @@ ENV HTTP_PROXY=$HTTP_PROXY \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
-# Dependencias del sistema para ARM64
-#RUN apt-get update && apt-get install -y --no-install-recommends \
-#    curl \
-#    build-essential \
-#    python3-dev \
-#    gfortran \
-#    libopenblas-dev \
-#    && rm -rf /var/lib/apt/lists/*
-
 COPY cerebro/requirements.txt .
 
 RUN python -m venv /opt/venv

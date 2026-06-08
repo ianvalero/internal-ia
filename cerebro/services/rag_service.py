@@ -1,5 +1,5 @@
 from llama_index.vector_stores.qdrant import QdrantVectorStore
-from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.core import VectorStoreIndex
 from qdrant_client import AsyncQdrantClient, QdrantClient
 from qdrant_client.http.models import CollectionsResponse
@@ -13,10 +13,10 @@ class RAGService:
         self._qdrant_client = QdrantClient(url=settings.qdrant_url)
         self._qdrant_aclient = AsyncQdrantClient(url=settings.qdrant_url)
 
-        self._embedding = HuggingFaceEmbedding(
-            model_name=settings.embedding_model_path,
-            local_files_only=True,
-            device=settings.embedding_device,
+        self._embedding = OpenAIEmbedding(
+            model_name=settings.embedding_model_name,
+            api_base=settings.embedding_base_url,
+            api_key="",
             embed_batch_size=32,
         )
 

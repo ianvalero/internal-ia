@@ -1,12 +1,11 @@
 from pydantic_settings import BaseSettings
-from typing import Literal
 
 class Settings(BaseSettings):
     proxy_url: str | None = None
     qdrant_url: str
     langfuse_url: str
-    embedding_model_path: str
-    embedding_device: Literal["cpu", "cuda"] = "cpu"
+    embedding_model_name: str
+    embedding_base_url: str
 
     class Config:
         env_file = "cerebro/.env"

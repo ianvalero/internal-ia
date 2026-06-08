@@ -31,20 +31,20 @@ class LLMService:
         response = await llm.acomplete(prompt)
         return str(response)
 
-    def _get_llm(self, model_name: str):
+    def _get_llm(self, model_name: str) -> OpenAILike:
         if model_name not in self._llm_cache:
             model = registry.get(name=model_name)
 
             self._llm_cache[model_name] = OpenAILike(
-            model=model.llm.model,
-            api_base=model.llm.base_url,
-            api_key=model.llm.api_key,
-            context_window=model.context_window,
-            is_chat_model=True,
-            timeout=model.llm.timeout,
-            max_retries=model.llm.max_retries,
-            temperature=model.llm.temperature
-        )
+                model=model.llm.model,
+                api_base=model.llm.base_url,
+                api_key=model.llm.api_key,
+                context_window=model.context_window,
+                is_chat_model=True,
+                timeout=model.llm.timeout,
+                max_retries=model.llm.max_retries,
+                temperature=model.llm.temperature
+            )
         return self._llm_cache[model_name]
 
     def _get_qa_template(self, chat_template: str) -> PromptTemplate:
