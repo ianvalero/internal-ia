@@ -28,14 +28,14 @@ services:
       replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.middlewares.${APP_NAME}-redirect-websecure.redirectscheme.scheme=https
-        - traefik.http.routers.${APP_NAME}-web.middlewares=${APP_NAME}-redirect-websecure
-        - traefik.http.routers.${APP_NAME}-web.rule=Host(`${APP_HOST}`)
-        - traefik.http.routers.${APP_NAME}-web.entrypoints=web
-        - traefik.http.routers.${APP_NAME}-websecure.rule=Host(`${APP_HOST}`)
-        - traefik.http.routers.${APP_NAME}-websecure.tls=true
-        - traefik.http.routers.${APP_NAME}-websecure.entrypoints=websecure
-        - traefik.http.services.${APP_NAME}-websecure.loadbalancer.server.port=3080
+        - traefik.http.middlewares.${LIBRECHAT_APP_NAME}-redirect-websecure.redirectscheme.scheme=https
+        - traefik.http.routers.${LIBRECHAT_APP_NAME}-web.middlewares=${LIBRECHAT_APP_NAME}-redirect-websecure
+        - traefik.http.routers.${LIBRECHAT_APP_NAME}-web.rule=Host(`${LIBRECHAT_APP_HOST}`)
+        - traefik.http.routers.${LIBRECHAT_APP_NAME}-web.entrypoints=web
+        - traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.rule=Host(`${APP_HOST}`)
+        - traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.tls=true
+        - traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.entrypoints=websecure
+        - traefik.http.services.${LIBRECHAT_APP_NAME}-websecure.loadbalancer.server.port=3080
 
   langfuse-web:
     image: langfuse/langfuse:3
@@ -76,14 +76,14 @@ services:
       replicas: 1
       labels:
         - traefik.enable=true
-        - traefik.http.middlewares.${APP_NAME}-redirect-websecure.redirectscheme.scheme=https
-        - traefik.http.routers.${APP_NAME}-web.middlewares=${APP_NAME}-redirect-websecure
-        - traefik.http.routers.${APP_NAME}-web.rule=Host(`${APP_HOST}`)
-          - traefik.http.routers.${APP_NAME}-web.entrypoints=web
-          - traefik.http.routers.${APP_NAME}-websecure.rule=Host(`${APP_HOST}`)
-          - traefik.http.routers.${APP_NAME}-websecure.tls=true
-          - traefik.http.routers.${APP_NAME}-websecure.entrypoints=websecure
-          - traefik.http.services.${APP_NAME}-websecure.loadbalancer.server.port=3080
+        - traefik.http.middlewares.${LANGFUSE_APP_NAME}-redirect-websecure.redirectscheme.scheme=https
+        - traefik.http.routers.${LANGFUSE_APP_NAME}-web.middlewares=${LANGFUSE_APP_NAME}-redirect-websecure
+        - traefik.http.routers.${LANGFUSE_APP_NAME}-web.rule=Host(`${APP_HOST}`)
+          - traefik.http.routers.${LANGFUSE_APP_NAME}-web.entrypoints=web
+          - traefik.http.routers.${LANGFUSE_APP_NAME}-websecure.rule=Host(`${LANGFUSE_APP_HOST}`)
+          - traefik.http.routers.${LANGFUSE_APP_NAME}-websecure.tls=true
+          - traefik.http.routers.${LANGFUSE_APP_NAME}-websecure.entrypoints=websecure
+          - traefik.http.services.${LANGFUSE_APP_NAME}-websecure.loadbalancer.server.port=3000
 
 volumes:
   librechat_images:
