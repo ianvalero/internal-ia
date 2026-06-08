@@ -49,141 +49,140 @@ services:
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL}
     ports:
-      - "9001:9000"
+      - "9050:9000"
     networks:
       - ai-network
       - langfuse-network
     volumes:
       - ./cerebro:/app/cerebro
-      - ./models:/models:ro
       - ./models.yaml:/app/cerebro/config/models.yaml
     deploy:
       restart_policy:
         condition: any
 
-#  langfuse-worker:
-#    image: langfuse/langfuse-worker:3
-#    environment:
-#      - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@langfuse-postgres:5432/langfuse
-#      - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
-#      - NEXTAUTH_URL=http://${FRONTEND_HOST}:3000
-#      - SALT=${LANGFUSE_SALT}
-#      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
-#      - CLICKHOUSE_URL=http://langfuse-clickhouse:8123
-#      - REDIS_HOST=langfuse-redis
-#      - REDIS_AUTH=
-#      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
-#      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://langfuse-minio:9000
-#      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=minio
-#      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_PASSWORD}
-#      - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
-#      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
-#      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
-#      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
-#      - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
-#      - CLICKHOUSE_MIGRATION_URL=clickhouse://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@langfuse-clickhouse:9000/${CLICKHOUSE_DATABASE}
-#      - CLICKHOUSE_CLUSTER_ENABLED=false
-#    networks:
-#      - langfuse-network
-#    deploy:
-#      replicas: 0
-#      restart_policy:
-#        condition: any
-#
-#  langfuse-postgres:
-#    image: postgres:16
-#    environment:
-#      - POSTGRES_USER=langfuse
-#      - POSTGRES_PASSWORD=${LANGFUSE_PG_PASSWORD}
-#      - POSTGRES_DB=langfuse
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - langfuse_postgres:/var/lib/postgresql/data
-#    networks:
-#      - langfuse-network
-#    deploy:
-#      restart_policy:
-#        condition: any
-#
-#  langfuse-clickhouse:
-#    image: clickhouse/clickhouse-server:24
-#    ports:
-#      - "8123:8123"
-#      - "9002:9000"
-#    # cap_add suele ser ignorado por Swarm por motivos de seguridad.
-#    # Si la imagen falla sin SYS_NICE, requerirá configuración adicional a nivel de demonio Docker.
-##    cap_add:
-##      - SYS_NICE
-#    environment:
-#      - TZ=UTC
-#      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
-#      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
-#      - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
-#    volumes:
-#      - langfuse_clickhouse_data:/var/lib/clickhouse
-#      - langfuse_clickhouse_logs:/var/log/clickhouse-server
-#    networks:
-#      - langfuse-network
-#    deploy:
-#      restart_policy:
-#        condition: any
-#
-#  langfuse-redis:
-#    image: redis:7
-#    networks:
-#      - langfuse-network
-#    ports:
-#      - "6379:6379"
-#    deploy:
-#      restart_policy:
-#        condition: any
-#
-#  langfuse-minio:
-#    image: minio/minio
-#    command: server /data
-#    environment:
-#      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-#      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
-#    volumes:
-#      - langfuse_minio:/data
-#    ports:
-#      - "9000:9000"
-#    networks:
-#      - langfuse-network
-#    deploy:
-#      restart_policy:
-#        condition: any
-#
-#  langfuse-minio-init:
-#    image: minio/mc
-#    entrypoint: >
-#      /bin/sh -c "
-#      until mc alias set local http://langfuse-minio:9000 ${MINIO_ROOT_USER} ${MINIO_PASSWORD}; do
-#        echo 'waiting for minio...';
-#        sleep 2;
-#      done;
-#      mc mb -p local/langfuse;
-#      exit 0;
-#      "
-#    networks:
-#      - langfuse-network
-#    deploy:
-#      restart_policy:
-#        condition: on-failure
-#        max_attempts: 5
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    environment:
+      - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@langfuse-postgres:5432/langfuse
+      - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=http://${FRONTEND_HOST}:3000
+      - SALT=${LANGFUSE_SALT}
+      - ENCRYPTION_KEY=${LANGFUSE_ENCRYPTION_KEY}
+      - CLICKHOUSE_URL=http://langfuse-clickhouse:8123
+      - REDIS_HOST=langfuse-redis
+      - REDIS_AUTH=
+      - LANGFUSE_S3_EVENT_UPLOAD_BUCKET=langfuse
+      - LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT=http://langfuse-minio:9000
+      - LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID=minio
+      - LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY=${MINIO_PASSWORD}
+      - LANGFUSE_S3_EVENT_UPLOAD_REGION=us-east-1
+      - LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE=true
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
+      - CLICKHOUSE_MIGRATION_URL=clickhouse://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@langfuse-clickhouse:9000/${CLICKHOUSE_DATABASE}
+      - CLICKHOUSE_CLUSTER_ENABLED=false
+    networks:
+      - langfuse-network
+    deploy:
+      replicas: 0
+      restart_policy:
+        condition: any
+
+  langfuse-postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=langfuse
+      - POSTGRES_PASSWORD=${LANGFUSE_PG_PASSWORD}
+      - POSTGRES_DB=langfuse
+    ports:
+      - "5432:5432"
+    volumes:
+      - langfuse_postgres:/var/lib/postgresql/data
+    networks:
+      - langfuse-network
+    deploy:
+      restart_policy:
+        condition: any
+
+  langfuse-clickhouse:
+    image: clickhouse/clickhouse-server:24
+    ports:
+      - "8123:8123"
+      - "9062:9000"
+    # cap_add suele ser ignorado por Swarm por motivos de seguridad.
+    # Si la imagen falla sin SYS_NICE, requerirá configuración adicional a nivel de demonio Docker.
+#    cap_add:
+#      - SYS_NICE
+    environment:
+      - TZ=UTC
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD}
+      - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
+    volumes:
+      - langfuse_clickhouse_data:/var/lib/clickhouse
+      - langfuse_clickhouse_logs:/var/log/clickhouse-server
+    networks:
+      - langfuse-network
+    deploy:
+      restart_policy:
+        condition: any
+
+  langfuse-redis:
+    image: redis:7
+    networks:
+      - langfuse-network
+    ports:
+      - "6379:6379"
+    deploy:
+      restart_policy:
+        condition: any
+
+  langfuse-minio:
+    image: minio/minio
+    command: server /data
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_PASSWORD}
+    volumes:
+      - langfuse_minio:/data
+    ports:
+      - "9060:9000"
+    networks:
+      - langfuse-network
+    deploy:
+      restart_policy:
+        condition: any
+
+  langfuse-minio-init:
+    image: minio/mc
+    entrypoint: >
+      /bin/sh -c "
+      until mc alias set local http://langfuse-minio:9060 ${MINIO_ROOT_USER} ${MINIO_PASSWORD}; do
+        echo 'waiting for minio...';
+        sleep 2;
+      done;
+      mc mb -p local/langfuse;
+      exit 0;
+      "
+    networks:
+      - langfuse-network
+    deploy:
+      restart_policy:
+        condition: on-failure
+        max_attempts: 5
 
 volumes:
   mongo_data:
   librechat_images:
   qdrant_storage:
-#  langfuse_postgres:
-#  langfuse_clickhouse_data:
-#  langfuse_clickhouse_logs:
-#  langfuse_minio:
+  langfuse_postgres:
+  langfuse_clickhouse_data:
+  langfuse_clickhouse_logs:
+  langfuse_minio:
 
 networks:
-#  langfuse-network:
-#    driver: overlay
+  langfuse-network:
+    driver: overlay
   ai-network:
     driver: overlay
