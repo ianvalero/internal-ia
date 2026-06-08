@@ -1,6 +1,4 @@
-# Forzar ARM64 explícitamente
-#FROM nvcr.io/nvidia/pytorch:26.02-py3
-FROM python:3.11-slim
+FROM registrytc.t-systems.es/python:3.11-slim
 
 WORKDIR /app
 
