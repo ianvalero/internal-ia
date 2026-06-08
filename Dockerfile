@@ -1,4 +1,4 @@
-FROM registrytc.t-systems.es/python:3.11-slim
+FROM python:3.11-slim
 
 WORKDIR /app
 
