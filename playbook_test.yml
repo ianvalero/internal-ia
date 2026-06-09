@@ -8,3 +8,4 @@
     - name: test
       shell: >
         ll /data/docker/stacks/internal-ia
+      become: true
