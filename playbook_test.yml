@@ -2,15 +2,14 @@
 - name: Deploy ia-backend stack
   hosts: dtz_srv_vmwz874,dtz_srv_vmwz919
   become: true
+  gather_facts: false
 
   tasks:
 
     - name: test
       shell: >
         whoami
-      become: true
 
     - name: test
       shell: >
         ls -la /data/docker/stacks/internal-ia
-      become: true
