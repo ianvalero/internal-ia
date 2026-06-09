@@ -1,0 +1,148 @@
+========================================================
+CONTEXTO PROYECTO: IA INTERNA
+========================================================
+
+INFRAESTRUCTURA
+---------------
+- Docker Swarm en nodo único (sin cluster) en ambos servidores
+- Ficheros en: /data/docker/stacks/ia-interna
+- Dos stacks separados que corren en servidores diferentes
+
+========================================================
+STACK ia-backend (docker-compose-backend.yaml)
+========================================================
+
+SERVICIOS:
+- librechat-mongodb  -> Mongo 7           | puerto 27017:27017
+- qdrant             -> Vector DB          | puertos 6333:6333, 6334:6334
+- cerebro            -> RAG/embeddings     | puerto host 9050 -> contenedor 9000 (imagen ia-cerebro:latest)
+- langfuse-postgres  -> Postgres 16        | puerto 5432:5432
+- langfuse-clickhouse-> ClickHouse 24      | puertos 8123:8123 (HTTP), 9062:9000 (native)
+- langfuse-redis     -> Redis 7            | puerto 6379:6379
+- langfuse-minio     -> MinIO              | puerto host 9060 -> contenedor 9000
+- langfuse-minio-init-> One-shot           | restart_policy: on-failure, max_attempts: 5
+                                             Inicializa el bucket de MinIO
+- langfuse-worker    -> Worker Langfuse    | arranca con replicas: 0
+                                             Se escala a 1 DESPUES del frontend
+
+REDES:
+- ai-network      (overlay, creada en este stack)
+- langfuse-network (overlay, creada en este stack)
+
+========================================================
+STACK ia-frontend (docker-compose-frontend.yaml)
+========================================================
+
+SERVICIOS:
+- librechat     -> ghcr.io/danny-avila/librechat:latest | puerto 3080:3080
+                   Con Traefik (SSL, redirect HTTP->HTTPS)
+- langfuse-web  -> langfuse/langfuse:3                  | puerto 3000:3000
+                   Con healthcheck propio definido
+
+REDES:
+- ai-network      (overlay, external - la crea el backend)
+- langfuse-network (overlay, external - la crea el backend)
+- traefik          (external)
+
+========================================================
+TABLA DE PUERTOS - REFERENCIAS EXTERNAS via BACKEND_HOST
+========================================================
+
+Servicio              | Puerto host | Puerto contenedor
+----------------------|-------------|------------------
+MongoDB               | 27017       | 27017
+Qdrant                | 6333, 6334  | 6333, 6334
+Cerebro/RAG           | 9050        | 9000
+Postgres              | 5432        | 5432
+Clickhouse HTTP       | 8123        | 8123
+Clickhouse native     | 9062        | 9000
+Redis                 | 6379        | 6379
+MinIO                 | 9060        | 9000
+
+REGLA IMPORTANTE:
+- Comunicacion interna entre servicios del mismo stack -> usar puerto del CONTENEDOR
+- Comunicacion entre stacks/servidores via BACKEND_HOST  -> usar puerto del HOST
+
+========================================================
+ORDEN DE ARRANQUE OBLIGATORIO DE LANGFUSE
+========================================================
+
+1. postgres + clickhouse + redis + minio   (en paralelo, esperar running)
+2. minio-init                              (esperar estado "complete" en docker service ps)
+3. resto del backend                       (cerebro, mongodb, qdrant)
+4. langfuse-web + librechat                (frontend, en paralelo, esperar running)
+5. langfuse-worker                         (escalar de 0 a 1 replica en el backend)
+
+========================================================
+ERRORES CORREGIDOS EN LOS COMPOSES
+========================================================
+
+BACKEND (docker-compose-backend.yaml):
+- langfuse-worker env LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT:
+    MAL:  http://langfuse-minio:9060
+    BIEN: http://langfuse-minio:9000   (puerto interno del contenedor)
+
+- langfuse-worker env CLICKHOUSE_MIGRATION_URL:
+    MAL:  ...@langfuse-clickhouse:9062/...
+    BIEN: ...@langfuse-clickhouse:9000/...  (puerto interno del contenedor)
+
+- Volumenes que estaban comentados y hay que declarar:
+    langfuse_postgres
+    langfuse_clickhouse_data
+    langfuse_clickhouse_logs
+    langfuse_minio
+
+FRONTEND (docker-compose-frontend.yaml):
+- langfuse-web env LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT:
+    MAL:  http://${BACKEND_HOST}:9000
+    BIEN: http://${BACKEND_HOST}:9060   (puerto host del servidor backend)
+
+- langfuse-web env CLICKHOUSE_MIGRATION_URL:
+    MAL:  ...@${BACKEND_HOST}:9002/...
+    BIEN: ...@${BACKEND_HOST}:9062/...  (puerto host del servidor backend)
+
+- langfuse-network declarada como external (la crea el stack backend):
+    MAL:  comentada o con driver: overlay
+    BIEN: langfuse-network:
+            external: true
+
+========================================================
+PLAYBOOK ANSIBLE (deploy-ia-stacks.yml)
+========================================================
+
+COMPORTAMIENTO:
+- Se lanza siempre contra los dos servidores a la vez
+- Si el stack YA existe  -> docker stack rm + espera eliminacion completa -> redeploy
+- Si el stack NO existe  -> deploy directo
+
+DETECCION DE ESTADO:
+- Servicios:    docker service ls --filter name=... comprobando replicas X/X
+- minio-init:   docker service ps --filter desired-state=complete buscando "Complete"
+                (metodo profesional, sin tiempos fijos)
+
+ESTRUCTURA (3 plays en orden):
+  Play 1 - Host: backend
+    - Comprueba/elimina stack ia-backend si existe
+    - Despliega stack completo (worker en replicas 0)
+    - Espera: postgres -> clickhouse -> redis -> minio -> minio-init complete
+    - Espera: cerebro, mongodb, qdrant
+
+  Play 2 - Host: frontend
+    - Comprueba/elimina stack ia-frontend si existe
+    - Despliega stack ia-frontend
+    - Espera: langfuse-web, librechat
+
+  Play 3 - Host: backend
+    - docker service scale ia-backend_langfuse-worker=1
+    - Espera a que langfuse-worker este running
+
+INVENTORY (inventory.yml):
+  Grupos: backend, frontend
+  Cada grupo apunta a su servidor con ansible_host, ansible_user, ansible_ssh_private_key_file
+
+COMANDO DE EJECUCION:
+  ansible-playbook deploy-ia-stacks.yml -i inventory.yml
+
+========================================================
+FIN DEL CONTEXTO
+========================================================
