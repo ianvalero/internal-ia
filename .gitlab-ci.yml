@@ -24,4 +24,4 @@ build-and-push:
   after_script:
     - docker logout $NEXUS_REGISTRY
   only:
-    - refactor/docker-compose-separation
+    - main

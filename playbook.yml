@@ -1,0 +1,201 @@
+---
+- name: Deploy ia-backend stack
+  hosts: dtz_srv_vmwz919
+  become: true
+  vars:
+    stack_name: ia-backend
+    compose_file: docker-compose-backend.yaml
+    stacks_path: /data/docker/stacks/ia-interna
+    service_wait_timeout: 300   # segundos máximos esperando a que un servicio esté running
+    minio_init_timeout: 120     # segundos máximos esperando a que minio-init complete
+
+  tasks:
+
+    - name: "[backend] Comprobar si el stack {{ stack_name }} existe"
+      command: docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
+      register: existing_stacks
+      changed_when: false
+
+    - name: "[backend] Eliminar stack existente {{ stack_name }}"
+      command: docker stack rm {{ stack_name }}
+      when: stack_name in existing_stacks.stdout_lines
+
+    - name: "[backend] Esperar a que el stack desaparezca completamente"
+      shell: >
+        docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
+        | grep -c "^{{ stack_name }}$" || true
+      register: stack_gone
+      until: stack_gone.stdout == "0"
+      retries: 30
+      delay: 5
+      when: stack_name in existing_stacks.stdout_lines
+
+    - name: "[backend] Desplegar stack {{ stack_name }}"
+      command: >
+        docker stack deploy
+          --compose-file {{ stacks_path }}/{{ compose_file }}
+          --with-registry-auth
+          --detach=true
+          {{ stack_name }}
+      args:
+        chdir: "{{ stacks_path }}"
+
+    - name: "[backend] Esperar a que los servicios base estén running"
+      shell: >
+        docker service ls
+          --filter name={{ stack_name }}_{{ item }}
+          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+      register: svc_replicas
+      until: >
+        svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
+        svc_replicas.stdout.split('/')[0] == svc_replicas.stdout.split('/')[1]
+      retries: "{{ (service_wait_timeout / 10) | int }}"
+      delay: 10
+      changed_when: false
+      loop:
+        - langfuse-postgres
+        - langfuse-clickhouse
+        - langfuse-redis
+        - langfuse-minio
+
+    - name: "[backend] Esperar a que minio-init complete"
+      shell: >
+        docker service ps {{ stack_name }}_langfuse-minio-init
+          --filter desired-state=complete
+          --format "{{ '{{' }}.CurrentState{{ '}}' }}"
+          --no-trunc
+        | grep -c "^Complete" || true
+      register: minio_init_done
+      until: minio_init_done.stdout | int >= 1
+      retries: "{{ (minio_init_timeout / 10) | int }}"
+      delay: 10
+      changed_when: false
+
+    - name: "[backend] Verificar que minio-init no terminó en error"
+      shell: >
+        docker service ps {{ stack_name }}_langfuse-minio-init
+          --filter desired-state=shutdown
+          --format "{{ '{{' }}.Error{{ '}}' }}"
+          --no-trunc
+        | grep -v "^$" | head -1
+      register: minio_init_error
+      changed_when: false
+      failed_when: minio_init_error.stdout != ""
+
+    - name: "[backend] Esperar al resto de servicios del backend"
+      shell: >
+        docker service ls
+          --filter name={{ stack_name }}_{{ item }}
+          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+      register: svc_replicas
+      until: >
+        svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
+        svc_replicas.stdout.split('/')[0] == svc_replicas.stdout.split('/')[1]
+      retries: "{{ (service_wait_timeout / 10) | int }}"
+      delay: 10
+      changed_when: false
+      loop:
+        - cerebro
+        - librechat-mongodb
+        - qdrant
+
+    - name: "[backend] fases 1-3 completadas"
+      debug:
+        msg: >
+          Stack {{ stack_name }} desplegado. Postgres, Clickhouse, Redis, Minio,
+          Cerebro, MongoDB y Qdrant están running. Minio-init completó.
+          Langfuse-worker pendiente (se escala tras el frontend).
+
+
+- name: Deploy ia-frontend stack
+  hosts: dtz_srv_vmwz874
+  become: true
+  vars:
+    stack_name: ia-frontend
+    compose_file: docker-compose-frontend.yaml
+    stacks_path: /data/docker/stacks/ia-interna
+    service_wait_timeout: 300
+
+  tasks:
+
+    - name: "[frontend] Comprobar si el stack {{ stack_name }} existe"
+      command: docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
+      register: existing_stacks
+      changed_when: false
+
+    - name: "[frontend] Eliminar stack existente {{ stack_name }}"
+      command: docker stack rm {{ stack_name }}
+      when: stack_name in existing_stacks.stdout_lines
+
+    - name: "[frontend] Esperar a que el stack desaparezca completamente"
+      shell: >
+        docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
+        | grep -c "^{{ stack_name }}$" || true
+      register: stack_gone
+      until: stack_gone.stdout == "0"
+      retries: 30
+      delay: 5
+      when: stack_name in existing_stacks.stdout_lines
+
+    - name: "[frontend] Desplegar stack {{ stack_name }}"
+      command: >
+        docker stack deploy
+          --compose-file {{ stacks_path }}/{{ compose_file }}
+          --with-registry-auth
+          --detach=true
+          {{ stack_name }}
+      args:
+        chdir: "{{ stacks_path }}"
+
+    - name: "[Frontend] Esperar a que los servicios del frontend estén running"
+      shell: >
+        docker service ls
+          --filter name={{ stack_name }}_{{ item }}
+          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+      register: svc_replicas
+      until: >
+        svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
+        svc_replicas.stdout.split('/')[0] == svc_replicas.stdout.split('/')[1]
+      retries: "{{ (service_wait_timeout / 10) | int }}"
+      delay: 10
+      changed_when: false
+      loop:
+        - langfuse-web
+        - librechat
+
+    - name: "[frontend] Despliegue completado"
+      debug:
+        msg: "Stack {{ stack_name }} desplegado. Langfuse-web y Librechat están running."
+
+
+- name: Escalar langfuse-worker tras el frontend
+  hosts: dtz_srv_vmwz919
+  become: true
+  vars:
+    stack_name: ia-backend
+    service_wait_timeout: 300
+
+  tasks:
+
+    - name: "[backend] Escalar langfuse-worker a 1 réplica"
+      command: docker service scale {{ stack_name }}_langfuse-worker=1
+
+    - name: "[backend] Esperar a que langfuse-worker esté running"
+      shell: >
+        docker service ls
+          --filter name={{ stack_name }}_langfuse-worker
+          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+      register: svc_replicas
+      until: >
+        svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
+        svc_replicas.stdout.split('/')[0] == svc_replicas.stdout.split('/')[1]
+      retries: "{{ (service_wait_timeout / 10) | int }}"
+      delay: 10
+      changed_when: false
+
+    - name: "[backend] Despliegue completo"
+      debug:
+        msg: >
+          Todos los servicios están running.
+          Orden: postgres → clickhouse → redis → minio → minio-init
+          → cerebro + mongodb + qdrant → langfuse-web + librechat → langfuse-worker.
