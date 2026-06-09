@@ -1,0 +1,10 @@
+---
+- name: Deploy ia-backend stack
+  hosts: dtz_srv_vmwz874,dtz_srv_vmwz919
+  become: true
+
+  tasks:
+
+    - name: test
+      shell: >
+        ll /data/docker/stacks/internal-ia
