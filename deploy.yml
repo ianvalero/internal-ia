@@ -5,7 +5,7 @@
   vars:
     stack_name: ia-backend
     compose_file: docker-compose-backend.yaml
-    stacks_path: /data/docker/stacks/interna-ia
+    stacks_path: /data/docker/stacks/internal-ia
     service_wait_timeout: 300   # segundos máximos esperando a que un servicio esté running
     minio_init_timeout: 120     # segundos máximos esperando a que minio-init complete
 
@@ -112,7 +112,7 @@
   vars:
     stack_name: ia-frontend
     compose_file: docker-compose-frontend.yaml
-    stacks_path: /data/docker/stacks/interna-ia
+    stacks_path: /data/docker/stacks/internal-ia
     service_wait_timeout: 300
 
   tasks:
