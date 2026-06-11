@@ -22,9 +22,7 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[backend] Esperar a que el stack desaparezca completamente"
-      shell: >
-        docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
-        | grep -c "^{{ stack_name }}$" || true
+      shell: docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}" | grep -c "^{{ stack_name }}$" || true
       register: stack_gone
       until: stack_gone.stdout == "0"
       retries: 30
@@ -46,10 +44,7 @@
       until: deploy_result.rc == 0
 
     - name: "[backend] Esperar a que los servicios estén running"
-      shell: >
-        docker service ls
-          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
-          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
+      shell: docker service ls --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}" | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
@@ -64,12 +59,7 @@
         - langfuse-minio
 
     - name: "[backend] Esperar a que minio-init complete"
-      shell: >
-        docker service ps {{ stack_name }}_langfuse-minio-init
-          --filter desired-state=complete
-          --format "{{ '{{' }}.CurrentState{{ '}}' }}"
-          --no-trunc
-        | grep -c "^Complete" || true
+      shell: docker service ps {{ stack_name }}_langfuse-minio-init --filter desired-state=complete --format "{{ '{{' }}.CurrentState{{ '}}' }}" --no-trunc | grep -c "^Complete" || true
       register: minio_init_done
       until: minio_init_done.stdout | int >= 1
       retries: "{{ (minio_init_timeout / 10) | int }}"
@@ -77,21 +67,13 @@
       changed_when: false
 
     - name: "[backend] Verificar que minio-init no terminó en error"
-      shell: >
-        docker service ps {{ stack_name }}_langfuse-minio-init
-          --filter desired-state=shutdown
-          --format "{{ '{{' }}.Error{{ '}}' }}"
-          --no-trunc
-        | grep -v "^$" | head -1
+      shell: docker service ps {{ stack_name }}_langfuse-minio-init --filter desired-state=shutdown --format "{{ '{{' }}.Error{{ '}}' }}" --no-trunc | grep -v "^$" | head -1
       register: minio_init_error
       changed_when: false
       failed_when: minio_init_error.stdout != ""
 
     - name: "[backend] Esperar al resto de servicios del backend"
-      shell: >
-        docker service ls
-          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
-          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
+      shell: docker service ls --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}" | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
@@ -133,9 +115,7 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[frontend] Esperar a que el stack desaparezca completamente"
-      shell: >
-        docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
-        | grep -c "^{{ stack_name }}$" || true
+      shell: docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}" | grep -c "^{{ stack_name }}$" || true
       register: stack_gone
       until: stack_gone.stdout == "0"
       retries: 30
@@ -153,10 +133,7 @@
         chdir: "{{ stacks_path }}"
 
     - name: "[Frontend] Esperar a que los servicios del frontend estén running"
-      shell: >
-        docker service ls
-          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
-          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
+      shell: docker service ls --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}" | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
@@ -187,10 +164,7 @@
       command: docker service scale {{ stack_name }}_langfuse-worker=1
 
     - name: "[backend] Esperar a que langfuse-worker esté running"
-      shell: >
-        docker service ls
-          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
-          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
+      shell: docker service ls --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}" | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
