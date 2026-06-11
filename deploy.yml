@@ -80,11 +80,14 @@
       delay: 10
       changed_when: false
 
-    - name: "[backend] Verificar exit code de minio-init"
-      shell: docker service ps {{ stack_name }}_langfuse-minio-init --no-trunc --format "{{ '{{' }}.ExitCode{{ '}}' }}"
-      register: minio_exit
+    - name: "[backend] Verificar que minio-init no falló"
+      shell: >
+        docker service ps {{ stack_name }}_langfuse-minio-init
+        --no-trunc
+        --format "{{ '{{' }}.Error{{ '}}' }}"
+      register: minio_error
       changed_when: false
-      failed_when: "'1' in minio_exit.stdout or '127' in minio_exit.stdout"
+      failed_when: minio_error.stdout | trim != ""
 
     - name: "[backend] Esperar al resto de servicios del backend"
       shell: docker service ls --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}" | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
