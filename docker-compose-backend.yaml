@@ -158,7 +158,7 @@ services:
     image: minio/mc
     entrypoint: >
       /bin/sh -c "
-      until mc alias set local http://langfuse-minio:9060 ${MINIO_ROOT_USER} ${MINIO_PASSWORD}; do
+      until mc alias set local http://langfuse-minio:9000 ${MINIO_ROOT_USER} ${MINIO_PASSWORD}; do
         echo 'waiting for minio...';
         sleep 2;
       done;
