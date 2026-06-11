@@ -40,7 +40,7 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[backend] Desplegar stack {{ stack_name }}"
-      command: |
+      shell: |
         set -a
         source {{ stacks_path }}/.env
         set +a
@@ -137,7 +137,7 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[frontend] Desplegar stack {{ stack_name }}"
-      command: |
+      shell: |
         set -a
         source {{ stacks_path }}/.env
         set +a
