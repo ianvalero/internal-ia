@@ -44,7 +44,7 @@
     - name: "[backend] Esperar a que los servicios estén running"
       shell: >
         docker service ls
-          --format "{{.Name}} {{.Replicas}}"
+          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
           | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
@@ -86,7 +86,7 @@
     - name: "[backend] Esperar al resto de servicios del backend"
       shell: >
         docker service ls
-          --format "{{.Name}} {{.Replicas}}"
+          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
           | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
@@ -151,7 +151,7 @@
     - name: "[Frontend] Esperar a que los servicios del frontend estén running"
       shell: >
         docker service ls
-          --format "{{.Name}} {{.Replicas}}"
+          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
           | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
@@ -185,7 +185,7 @@
     - name: "[backend] Esperar a que langfuse-worker esté running"
       shell: >
         docker service ls
-          --format "{{.Name}} {{.Replicas}}"
+          --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}"
           | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
