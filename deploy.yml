@@ -44,8 +44,8 @@
     - name: "[backend] Esperar a que los servicios estén running"
       command: >
         docker service ls
-          --filter name={{ stack_name }}_{{ item }}
-          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+          --format "{{.Name}} {{.Replicas}}"
+          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
@@ -86,8 +86,8 @@
     - name: "[backend] Esperar al resto de servicios del backend"
       command: >
         docker service ls
-          --filter name={{ stack_name }}_{{ item }}
-          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+          --format "{{.Name}} {{.Replicas}}"
+          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
@@ -151,8 +151,8 @@
     - name: "[Frontend] Esperar a que los servicios del frontend estén running"
       command: >
         docker service ls
-          --filter name={{ stack_name }}_{{ item }}
-          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+          --format "{{.Name}} {{.Replicas}}"
+          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
@@ -185,8 +185,8 @@
     - name: "[backend] Esperar a que langfuse-worker esté running"
       command: >
         docker service ls
-          --filter name={{ stack_name }}_langfuse-worker
-          --format "{{ '{{' }}.Replicas{{ '}}' }}"
+          --format "{{.Name}} {{.Replicas}}"
+          | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
       register: svc_replicas
       until: >
         svc_replicas.stdout is match("^[1-9][0-9]*/[1-9][0-9]*$") and
