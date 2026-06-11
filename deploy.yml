@@ -12,6 +12,16 @@
 
   tasks:
 
+    - name: "[backend] Comprobar que existe el fichero .env"
+      stat:
+        path: "{{ stacks_path }}/.env"
+      register: env_file
+
+    - name: "[backend] Fallar si no existe el .env"
+      fail:
+        msg: "No existe el fichero .env en {{ stacks_path }}. Abortando despliegue."
+      when: not env_file.stat.exists
+
     - name: "[backend] Comprobar si el stack {{ stack_name }} existe"
       command: docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
       register: existing_stacks
@@ -30,12 +40,16 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[backend] Desplegar stack {{ stack_name }}"
-      command: >
-        docker stack deploy
-          --compose-file {{ stacks_path }}/{{ compose_file }}
-          --with-registry-auth
-          --detach=true
-          {{ stack_name }}
+      command: |
+        set -a
+        source {{ stacks_path }}/.env
+        set +a
+        
+        docker stack deploy \
+        --compose-file {{ stacks_path }}/{{ compose_file }} \
+        --with-registry-auth \
+        --detach=true \
+        {{ stack_name }}
       args:
         chdir: "{{ stacks_path }}"
       register: deploy_result
@@ -123,12 +137,16 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[frontend] Desplegar stack {{ stack_name }}"
-      command: >
-        docker stack deploy
-          --compose-file {{ stacks_path }}/{{ compose_file }}
-          --with-registry-auth
-          --detach=true
-          {{ stack_name }}
+      command: |
+        set -a
+        source {{ stacks_path }}/.env
+        set +a
+        
+        docker stack deploy \
+        --compose-file {{ stacks_path }}/{{ compose_file }} \
+        --with-registry-auth \
+        --detach=true \
+        {{ stack_name }}
       args:
         chdir: "{{ stacks_path }}"
 
