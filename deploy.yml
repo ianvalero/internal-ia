@@ -22,7 +22,7 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[backend] Esperar a que el stack desaparezca completamente"
-      shell: >
+      command: >
         docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
         | grep -c "^{{ stack_name }}$" || true
       register: stack_gone
@@ -41,8 +41,8 @@
       args:
         chdir: "{{ stacks_path }}"
 
-    - name: "[backend] Esperar a que los servicios base estén running"
-      shell: >
+    - name: "[backend] Esperar a que los servicios estén running"
+      command: >
         docker service ls
           --filter name={{ stack_name }}_{{ item }}
           --format "{{ '{{' }}.Replicas{{ '}}' }}"
@@ -60,7 +60,7 @@
         - langfuse-minio
 
     - name: "[backend] Esperar a que minio-init complete"
-      shell: >
+      command: >
         docker service ps {{ stack_name }}_langfuse-minio-init
           --filter desired-state=complete
           --format "{{ '{{' }}.CurrentState{{ '}}' }}"
@@ -73,7 +73,7 @@
       changed_when: false
 
     - name: "[backend] Verificar que minio-init no terminó en error"
-      shell: >
+      command: >
         docker service ps {{ stack_name }}_langfuse-minio-init
           --filter desired-state=shutdown
           --format "{{ '{{' }}.Error{{ '}}' }}"
@@ -84,7 +84,7 @@
       failed_when: minio_init_error.stdout != ""
 
     - name: "[backend] Esperar al resto de servicios del backend"
-      shell: >
+      command: >
         docker service ls
           --filter name={{ stack_name }}_{{ item }}
           --format "{{ '{{' }}.Replicas{{ '}}' }}"
@@ -129,7 +129,7 @@
       when: stack_name in existing_stacks.stdout_lines
 
     - name: "[frontend] Esperar a que el stack desaparezca completamente"
-      shell: >
+      command: >
         docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
         | grep -c "^{{ stack_name }}$" || true
       register: stack_gone
@@ -149,7 +149,7 @@
         chdir: "{{ stacks_path }}"
 
     - name: "[Frontend] Esperar a que los servicios del frontend estén running"
-      shell: >
+      command: >
         docker service ls
           --filter name={{ stack_name }}_{{ item }}
           --format "{{ '{{' }}.Replicas{{ '}}' }}"
@@ -183,7 +183,7 @@
       command: docker service scale {{ stack_name }}_langfuse-worker=1
 
     - name: "[backend] Esperar a que langfuse-worker esté running"
-      shell: >
+      command: >
         docker service ls
           --filter name={{ stack_name }}_langfuse-worker
           --format "{{ '{{' }}.Replicas{{ '}}' }}"
