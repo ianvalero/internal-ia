@@ -73,18 +73,18 @@
         - langfuse-minio
 
     - name: "[backend] Esperar a que minio-init complete"
-      shell: docker service ps {{ stack_name }}_langfuse-minio-init --filter desired-state=complete --format "{{ '{{' }}.CurrentState{{ '}}' }}" --no-trunc | grep -c "^Complete" || true
-      register: minio_init_done
-      until: minio_init_done.stdout | int >= 1
+      shell: docker service ps {{ stack_name }}_langfuse-minio-init --no-trunc --format "{{ '{{' }}.CurrentState{{ '}}' }}"
+      register: minio_state
+      until: minio_state.stdout is search("Complete")
       retries: "{{ (minio_init_timeout / 10) | int }}"
       delay: 10
       changed_when: false
 
-    - name: "[backend] Verificar que minio-init no terminó en error"
-      shell: docker service ps {{ stack_name }}_langfuse-minio-init --filter desired-state=shutdown --format "{{ '{{' }}.Error{{ '}}' }}" --no-trunc | grep -v "^$" | head -1
-      register: minio_init_error
+    - name: "[backend] Verificar exit code de minio-init"
+      shell: docker service ps {{ stack_name }}_langfuse-minio-init --no-trunc --format "{{ '{{' }}.ExitCode{{ '}}' }}"
+      register: minio_exit
       changed_when: false
-      failed_when: minio_init_error.stdout != ""
+      failed_when: "'1' in minio_exit.stdout or '127' in minio_exit.stdout"
 
     - name: "[backend] Esperar al resto de servicios del backend"
       shell: docker service ls --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}" | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
