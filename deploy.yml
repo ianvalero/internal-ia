@@ -40,6 +40,10 @@
           {{ stack_name }}
       args:
         chdir: "{{ stacks_path }}"
+      register: deploy_result
+      retries: 10
+      delay: 5
+      until: deploy_result.rc == 0
 
     - name: "[backend] Esperar a que los servicios estén running"
       shell: >
