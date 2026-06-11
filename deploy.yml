@@ -2,6 +2,7 @@
 - name: Deploy ia-backend stack
   hosts: dtz_srv_vmwz919
   become: true
+  gather_facts: false
   vars:
     stack_name: ia-backend
     compose_file: docker-compose-backend.yaml
@@ -109,6 +110,7 @@
 - name: Deploy ia-frontend stack
   hosts: dtz_srv_vmwz874
   become: true
+  gather_facts: false
   vars:
     stack_name: ia-frontend
     compose_file: docker-compose-frontend.yaml
@@ -170,6 +172,7 @@
 - name: Escalar langfuse-worker tras el frontend
   hosts: dtz_srv_vmwz919
   become: true
+  gather_facts: false
   vars:
     stack_name: ia-backend
     service_wait_timeout: 300
