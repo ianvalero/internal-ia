@@ -5,10 +5,11 @@
   gather_facts: false
   vars:
     stack_name: ia-backend
+    nexus_registry: registrytc.t-systems.es
     compose_file: docker-compose-backend.yaml
     stacks_path: /data/docker/stacks/internal-ia
-    service_wait_timeout: 300   # segundos máximos esperando a que un servicio esté running
-    minio_init_timeout: 120     # segundos máximos esperando a que minio-init complete
+    service_wait_timeout: 300
+    minio_init_timeout: 120
 
   tasks:
 
@@ -21,6 +22,39 @@
       fail:
         msg: "No existe el fichero .env en {{ stacks_path }}. Abortando despliegue."
       when: not env_file.stat.exists
+
+    - name: "[backend] Registry"
+      block:
+      - name: "[backend] Leer config de Docker (root)"
+        slurp:
+          src: /root/.docker/config.json
+        register: docker_cfg_raw
+        ignore_errors: true
+
+      - name: "[backend] Verificar credenciales para {{ nexus_registry }}"
+        vars:
+          docker_cfg: "{{ (docker_cfg_raw.content | b64decode | from_json) if docker_cfg_raw.content is defined else {} }}"
+        fail:
+          msg: >
+            No hay credenciales guardadas para {{ nexus_registry }} en /root/.docker/config.json.
+            Ejecuta 'docker login {{ nexus_registry }}' como root en este host antes de desplegar.
+        when: >
+          nexus_registry not in (docker_cfg.auths | default({}))
+          and docker_cfg.credsStore is not defined
+          and (docker_cfg.credHelpers is not defined or nexus_registry not in (docker_cfg.credHelpers | default({})))
+
+      - name: "[backend] Verificar acceso al registry haciendo pull de cerebro"
+        shell: |
+          set -a
+          source {{ stacks_path }}/.env
+          set +a
+          docker pull {{ nexus_registry }}/ia-cerebro:latest
+        args:
+          chdir: "{{ stacks_path }}"
+        register: cerebro_pull
+        changed_when: "'Downloaded newer image' in cerebro_pull.stdout"
+        failed_when: >
+          cerebro_pull.rc != 0
 
     - name: "[backend] Comprobar si el stack {{ stack_name }} existe"
       command: docker stack ls --format "{{ '{{' }}.Name{{ '}}' }}"
@@ -102,6 +136,10 @@
         - cerebro
         - librechat-mongodb
         - qdrant
+
+    - name: "[backend] Limpiar imágenes docker huérfanas"
+      command: docker image prune -f
+      changed_when: false
 
     - name: "[backend] fases 1-3 completadas"
       debug:
