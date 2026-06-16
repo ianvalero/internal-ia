@@ -1,6 +1,6 @@
 ---
 - name: Deploy ia-backend stack
-  hosts: dtz_srv_vmwz919
+  hosts: dtz_srv_vmwz874
   become: true
   gather_facts: false
   vars:
@@ -149,7 +149,7 @@
 
 
 - name: Deploy ia-frontend stack
-  hosts: dtz_srv_vmwz874
+  hosts: dtz_srv_vmwz919
   become: true
   gather_facts: false
   vars:
@@ -210,7 +210,7 @@
 
 
 - name: Escalar langfuse-worker tras el frontend
-  hosts: dtz_srv_vmwz919
+  hosts: dtz_srv_vmwz874
   become: true
   gather_facts: false
   vars:
