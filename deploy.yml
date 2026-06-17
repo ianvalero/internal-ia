@@ -190,6 +190,10 @@
         {{ stack_name }}
       args:
         chdir: "{{ stacks_path }}"
+      register: deploy_result
+      retries: 10
+      delay: 5
+      until: deploy_result.rc == 0
 
     - name: "[Frontend] Esperar a que los servicios del frontend estén running"
       shell: docker service ls --format "{{ '{{' }}.Name{{ '}}' }} {{ '{{' }}.Replicas{{ '}}' }}" | awk '$1=="{{ stack_name }}_{{ item }}"{print $2}'
