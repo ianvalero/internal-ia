@@ -231,6 +231,8 @@
       retries: "{{ (service_wait_timeout / 10) | int }}"
       delay: 10
       changed_when: false
+      loop:
+        - langfuse-worker
 
     - name: "[backend] Despliegue completo"
       debug:
