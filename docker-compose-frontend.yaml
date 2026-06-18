@@ -39,6 +39,7 @@ services:
   langfuse-web:
     image: langfuse/langfuse:3
     environment:
+      - HOSTNAME=0.0.0.0
       - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@${BACKEND_HOST}:5432/langfuse
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
       - NEXTAUTH_URL=https://${LANGFUSE_APP_HOST}
@@ -83,6 +84,8 @@ services:
         - "traefik.http.routers.${LANGFUSE_APP_NAME}-websecure.tls=true"
         - "traefik.http.routers.${LANGFUSE_APP_NAME}-websecure.entrypoints=websecure"
         - "traefik.http.services.${LANGFUSE_APP_NAME}-websecure.loadbalancer.server.port=3000"
+        - "traefik.http.routers.langfuse-web.service=langfuse-websecure"
+        - "traefik.http.routers.langfuse-websecure.service=langfuse-websecure"
 
 volumes:
   librechat_images:
