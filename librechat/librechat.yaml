@@ -2,11 +2,6 @@ version: 1.3.13
 
 cache: true
 
-config:
-  ui:
-    appTitle: "Sonar IA"
-    logo: "https://url-de-tu-servidor.com/ruta/a/tu/logo.svg"
-
 endpoints:
   custom:
     - name: "T-Models"
