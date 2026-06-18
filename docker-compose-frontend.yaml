@@ -4,8 +4,6 @@ services:
 
   librechat:
     image: ghcr.io/danny-avila/librechat:latest
-    ports:
-      - "3080:3080"
     environment:
       HOST: ${LIBRECHAT_HOST}
       PORT: ${LIBRECHAT_PORT}
@@ -40,8 +38,6 @@ services:
 
   langfuse-web:
     image: langfuse/langfuse:3
-    ports:
-      - "3000:3000"
     environment:
       - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@${BACKEND_HOST}:5432/langfuse
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
