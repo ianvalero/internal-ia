@@ -1,6 +1,11 @@
-version: 1.3.6
+version: 1.3.13
 
 cache: true
+
+config:
+  ui:
+    appTitle: "Sonar IA"
+    logo: "https://url-de-tu-servidor.com/ruta/a/tu/logo.svg"
 
 endpoints:
   custom:
@@ -16,7 +21,7 @@ endpoints:
       titleMessageRole: "user"
       titlePrompt: |
         Provide a concise title (5 words max) for this conversation. Only return the title, nothing else:
-        {convo}"
+        {convo}
       summarize: false
       summaryModel: "current_model"
       headers:
