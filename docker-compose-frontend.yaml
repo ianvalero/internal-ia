@@ -17,7 +17,6 @@ services:
     volumes:
       - librechat_images:/app/client/public/images
       - ./librechat/librechat.yaml:/app/librechat.yaml
-      - ./librechat/sonar_logo.svg:/app/client/dist/assets/logo.svg
     networks:
       - ai-network
       - traefik
