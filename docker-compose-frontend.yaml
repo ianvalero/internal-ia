@@ -40,7 +40,7 @@ services:
   langfuse-web:
     image: langfuse/langfuse:3
     environment:
-      - HOSTNAME=0.0.0.0
+      - HOSTNAME=${LANGFUSE_HOST}
       - DATABASE_URL=postgresql://langfuse:${LANGFUSE_PG_PASSWORD}@${BACKEND_HOST}:5432/langfuse
       - NEXTAUTH_SECRET=${LANGFUSE_NEXTAUTH_SECRET}
       - NEXTAUTH_URL=https://${LANGFUSE_APP_HOST}
@@ -61,6 +61,11 @@ services:
       - CLICKHOUSE_DATABASE=${CLICKHOUSE_DATABASE}
       - CLICKHOUSE_MIGRATION_URL=clickhouse://${CLICKHOUSE_USER}:${CLICKHOUSE_PASSWORD}@${BACKEND_HOST}:9062/${CLICKHOUSE_DATABASE}
       - CLICKHOUSE_CLUSTER_ENABLED=false
+      - LANGFUSE_INIT_ORG_ID=ia-interna
+      - LANGFUSE_INIT_ORG_NAME=IA INTERNA
+      - LANGFUSE_INIT_USER_EMAIL=${TOOLS_USER}
+      - LANGFUSE_INIT_USER_PASSWORD=${TOOLS_USER_PASSWORD}
+      - AUTH_DISABLE_SIGNUP=true
     networks:
       - langfuse-network
       - traefik
