@@ -33,6 +33,7 @@ services:
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-web.middlewares=${LIBRECHAT_APP_NAME}-redirect-websecure"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-web.rule=Host(`${LIBRECHAT_APP_HOST}`)"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-web.entrypoints=web"
+        - "traefik.http.routers.${LIBRECHAT_APP_NAME}-web.priority=1"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.rule=Host(`${LIBRECHAT_APP_HOST}`)"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.tls=true"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.entrypoints=websecure"
