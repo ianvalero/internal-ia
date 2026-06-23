@@ -58,17 +58,12 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik"
-        - "traefik.http.middlewares.${LIBRECHAT_ADMIN_NAME}-redirect-websecure.redirectscheme.scheme=https"
-        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.middlewares=${LIBRECHAT_ADMIN_NAME}-redirect-websecure"
-        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.rule=Host(`${LIBRECHAT_APP_HOST}`) && PathPrefix(`/admin`)"
-        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.entrypoints=web"
-        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.priority=10"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.rule=Host(`${LIBRECHAT_APP_HOST}`) && PathPrefix(`/admin`)"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.tls=true"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.entrypoints=websecure"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.priority=10"
-        - "traefik.http.services.${LIBRECHAT_ADMIN_NAME}-websecure.loadbalancer.server.port=3000"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.service=${LIBRECHAT_ADMIN_NAME}-websecure"
+        - "traefik.http.services.${LIBRECHAT_ADMIN_NAME}-websecure.loadbalancer.server.port=3000"
 
   langfuse-web:
     image: langfuse/langfuse:3
