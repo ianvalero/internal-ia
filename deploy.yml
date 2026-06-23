@@ -207,6 +207,7 @@
       loop:
         - langfuse-web
         - librechat
+        - librechat-admin-panel
 
     - name: "[frontend] Despliegue completado"
       debug:

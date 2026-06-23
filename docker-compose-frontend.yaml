@@ -14,6 +14,7 @@ services:
       ALLOW_REGISTRATION: ${ALLOW_REGISTRATION}
       RAG_API_URL: ${RAG_API_URL}
       NODE_OPTIONS: ${NODE_OPTIONS}
+      ADMIN_PANEL_URL: "https://${LIBRECHAT_APP_HOST}/admin"
     volumes:
       - librechat_images:/app/client/public/images
       - ./librechat/librechat.yaml:/app/librechat.yaml
@@ -36,6 +37,34 @@ services:
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.tls=true"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.entrypoints=websecure"
         - "traefik.http.services.${LIBRECHAT_APP_NAME}-websecure.loadbalancer.server.port=3080"
+
+  librechat-admin-panel:
+    image: ghcr.io/clickhouse/librechat-admin-panel:latest
+    environment:
+      VITE_API_BASE_URL: "http://librechat:${LIBRECHAT_PORT}"
+      SESSION_SECRET: ${ADMIN_PANEL_SESSION_SECRET}
+      SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE}
+      API_SERVER_URL: "http://librechat:3080"
+      VITE_BASE_PATH: "/admin"
+    networks:
+      - ai-network
+      - traefik
+    deploy:
+      restart_policy:
+        condition: any
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.docker.network=traefik"
+        - "traefik.http.middlewares.${LIBRECHAT_ADMIN_NAME}-redirect-websecure.redirectscheme.scheme=https"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.middlewares=${LIBRECHAT_ADMIN_NAME}-redirect-websecure"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.rule=Host(`${LIBRECHAT_APP_HOST}`) && PathPrefix(`/admin`)"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.entrypoints=web"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.rule=Host(`${LIBRECHAT_APP_HOST}`) && PathPrefix(`/admin`)"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.tls=true"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.entrypoints=websecure"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.priority=10"
+        - "traefik.http.services.${LIBRECHAT_ADMIN_NAME}-websecure.loadbalancer.server.port=3000"
 
   langfuse-web:
     image: langfuse/langfuse:3
