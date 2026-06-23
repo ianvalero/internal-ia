@@ -46,6 +46,7 @@ services:
       VITE_API_BASE_URL: "https://${LIBRECHAT_APP_HOST}"
       SESSION_SECRET: ${ADMIN_PANEL_SESSION_SECRET}
       SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE}
+      TRUST_PROXY: "true"
       API_SERVER_URL: "http://librechat:3080"
       VITE_BASE_PATH: "/admin"
     networks:
@@ -58,7 +59,7 @@ services:
       labels:
         - "traefik.enable=true"
         - "traefik.docker.network=traefik"
-        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.rule=Host(`${LIBRECHAT_APP_HOST}`) && PathPrefix(`/admin`)"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.rule=Host(`${LIBRECHAT_APP_HOST}`) && (PathPrefix(`/admin/`) || Path(`/admin`))"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.tls=true"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.entrypoints=websecure"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.priority=10"
