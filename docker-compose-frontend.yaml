@@ -67,6 +67,7 @@ services:
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.entrypoints=websecure"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.priority=10"
         - "traefik.http.services.${LIBRECHAT_ADMIN_NAME}-websecure.loadbalancer.server.port=3000"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.service=${LIBRECHAT_ADMIN_NAME}-websecure"
 
   langfuse-web:
     image: langfuse/langfuse:3
