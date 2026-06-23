@@ -36,6 +36,7 @@ services:
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.rule=Host(`${LIBRECHAT_APP_HOST}`)"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.tls=true"
         - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.entrypoints=websecure"
+        - "traefik.http.routers.${LIBRECHAT_APP_NAME}-websecure.priority=1"
         - "traefik.http.services.${LIBRECHAT_APP_NAME}-websecure.loadbalancer.server.port=3080"
 
   librechat-admin-panel:
@@ -60,6 +61,7 @@ services:
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.middlewares=${LIBRECHAT_ADMIN_NAME}-redirect-websecure"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.rule=Host(`${LIBRECHAT_APP_HOST}`) && PathPrefix(`/admin`)"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-web.entrypoints=web"
+        - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.priority=10"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.rule=Host(`${LIBRECHAT_APP_HOST}`) && PathPrefix(`/admin`)"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.tls=true"
         - "traefik.http.routers.${LIBRECHAT_ADMIN_NAME}-websecure.entrypoints=websecure"
