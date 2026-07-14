@@ -110,10 +110,6 @@ services:
     ports:
       - "8123:8123"
       - "9062:9000"
-    # cap_add suele ser ignorado por Swarm por motivos de seguridad.
-    # Si la imagen falla sin SYS_NICE, requerirá configuración adicional a nivel de demonio Docker.
-#    cap_add:
-#      - SYS_NICE
     environment:
       - TZ=UTC
       - CLICKHOUSE_USER=${CLICKHOUSE_USER}
@@ -185,4 +181,4 @@ networks:
   langfuse-network:
     driver: overlay
   ai-network:
-    driver: overlay
+    external: true
