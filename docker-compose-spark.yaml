@@ -44,7 +44,7 @@ services:
       --max-num-seqs ${VLLM_MAX_NUM_SEQS}
       --reasoning-parser ""
       --default-chat-template-kwargs '{"enable_thinking": false}'
-      --served-model-name qwen2.5-14b
+      --served-model-name llm_model
     networks:
       - ai-network
     restart: unless-stopped
@@ -83,6 +83,7 @@ services:
       --dtype ${EMBEDDING_DTYPE}
       --gpu-memory-utilization ${EMBEDDING_GPU_MEMORY_UTIL}
       --max-model-len ${EMBEDDING_MAX_MODEL_LEN}
+      --served-model-name embedding_model
     networks:
       - ai-network
     restart: unless-stopped
