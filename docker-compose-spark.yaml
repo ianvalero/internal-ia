@@ -62,7 +62,7 @@ services:
       - "8001:8001"
     volumes:
       - /opt/ai/cache/huggingface:/root/.cache/huggingface
-      - /opt/ai/models/llm:/models:ro
+      - /opt/ai/models/embeddings:/models:ro
       - /opt/ai/cache/flashinfer:/root/.cache/flashinfer
       - /opt/ai/cache/vllm:/root/.cache/vllm
     environment:
