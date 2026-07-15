@@ -6,10 +6,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./hf_cache:/root/.cache/huggingface
-      - ./models:/models:ro
-      - flashinfer-cache:/root/.cache/flashinfer
-      - vllm-cache:/root/.cache/vllm
+      - /opt/ai/cache/huggingface:/root/.cache/huggingface
+      - /opt/ai/models/llm:/models:ro
+      - /opt/ai/cache/flashinfer:/root/.cache/flashinfer
+      - /opt/ai/cache/vllm:/root/.cache/vllm
     environment:
       CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES}
@@ -61,10 +61,10 @@ services:
     ports:
       - "8001:8001"
     volumes:
-      - ./hf_cache:/root/.cache/huggingface
-      - ./models:/models:ro
-      - flashinfer-cache:/root/.cache/flashinfer
-      - vllm-cache:/root/.cache/vllm
+      - /opt/ai/cache/huggingface:/root/.cache/huggingface
+      - /opt/ai/models/llm:/models:ro
+      - /opt/ai/cache/flashinfer:/root/.cache/flashinfer
+      - /opt/ai/cache/vllm:/root/.cache/vllm
     environment:
       CUDA_VISIBLE_DEVICES: ${CUDA_VISIBLE_DEVICES}
       NVIDIA_VISIBLE_DEVICES: ${NVIDIA_VISIBLE_DEVICES}
@@ -93,11 +93,6 @@ services:
       timeout: 10s
       retries: 3
       start_period: 120s
-
-volumes:
-  vllm-cache:
-  flashinfer-cache:
-    name: ia_flashinfer-cache
 
 networks:
   ai-network:
