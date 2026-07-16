@@ -74,7 +74,6 @@ services:
       TRANSFORMERS_OFFLINE: ${HF_TRANSFORMERS_OFFLINE}
       HF_DATASETS_OFFLINE: ${HF_DATASETS_OFFLINE}
 
-      ATTENTION_BACKEND: FLASHINFER
       OMP_NUM_THREADS: ${EMBEDDING_OMP_NUM_THREADS}
     command: >
       --host ${EMBEDDING_HOST}
@@ -83,6 +82,7 @@ services:
       --dtype ${EMBEDDING_DTYPE}
       --gpu-memory-utilization ${EMBEDDING_GPU_MEMORY_UTIL}
       --max-model-len ${EMBEDDING_MAX_MODEL_LEN}
+      --max-num-seqs ${EMBEDDING_MAX_NUM_SEQS}
       --served-model-name embedding_model
     networks:
       - ai-network
