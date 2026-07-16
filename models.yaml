@@ -1,26 +1,13 @@
 models:
-  cuentos-tinyllama:
-    name: TinyLlama-1.1B-Chat-v1.0
-    collection: cuentos
-    context_window: 2048
-    chat_template: tinyllama
-    llm:
-      provider: vllm
-      base_url: http://vllm:8000/v1
-      model: /models/TinyLlama-1.1B-Chat-v1.0
-      temperature: 0.3
-      timeout: 300
-      max_retries: 2
-
   tools-qwen:
-    name: TinyLlama-1.1B-Chat-v1.0
-    collection: tools
-    context_window: 2048
+    name: llm_model
+    collection: col_MCL_4d677c45fcda4c0396a20aa5769d73e4
+    context_window: 30000
     chat_template: qwen
     llm:
       provider: vllm
-      base_url: http://vllm:8000/v1
-      model: /models/TinyLlama-1.1B-Chat-v1.0
-      temperature: 1.0
+      base_url: http://160.118.44.74:8000/v1
+      model: /models/llm_model
+      temperature: 0.5
       timeout: 300
       max_retries: 2
