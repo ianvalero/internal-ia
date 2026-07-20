@@ -6,9 +6,8 @@ endpoints:
   custom:
     - name: "T-Models"
       apiKey: "dummy"
-      baseURL: "http://cerebro:9000/v1"
+      baseURL: "http://10.49.207.214:9050/v1"
       models:
-        default: ["cuentos-tinyllama"]
         fetch: true
       titleConvo: false
       titleModel: "current_model"
