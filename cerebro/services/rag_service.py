@@ -16,7 +16,7 @@ class RAGService:
         self._embedding = OpenAIEmbedding(
             model_name=settings.embedding_model_name,
             api_base=settings.embedding_base_url,
-            api_key="",
+            api_key="local",
             embed_batch_size=32,
         )
 
