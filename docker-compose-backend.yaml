@@ -48,6 +48,8 @@ services:
       LANGFUSE_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
       LANGFUSE_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
       LANGFUSE_BASE_URL: ${LANGFUSE_BASE_URL}
+    extra_hosts:
+      - "langfuse.t-systems.es:10.49.207.40"
     ports:
       - "9050:9000"
     networks:
