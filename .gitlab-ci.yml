@@ -27,7 +27,7 @@ build-and-push:
     - docker rmi $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:latest
 
   after_script:
-    - rm -f docker/certs
+    - rm -rf docker/certs
     - docker logout $NEXUS_REGISTRY
 
   only:
