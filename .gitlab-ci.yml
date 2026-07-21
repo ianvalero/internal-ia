@@ -11,17 +11,32 @@ build-and-push:
   services:
     - name: docker:24-dind
       command: ["--storage-driver=vfs"]
+
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
     DOCKER_DRIVER: vfs
+
   before_script:
+    - apk add --no-cache curl jq ca-certificates
     - docker login -u $NEXUS_USER -p $NEXUS_PASSWORD $NEXUS_REGISTRY
+    - |
+      curl --fail --silent --show-error \
+        --header "X-Vault-Token: $VAULT_TOKEN" \
+        "$VAULT_ADDR/v1/certificates/data/wildcard-t-systems" \
+        | jq -er '.data.data.ca' \
+        > docker/certs/t-systems-ca.crt
+    - test -s docker/certs/t-systems-ca.crt
+    - grep -q -- "-----BEGIN CERTIFICATE-----" docker/certs/t-systems-ca.crt
+
   script:
     - docker build -f Dockerfile --tag $IMAGE_NAME:$CI_COMMIT_SHORT_SHA -t $IMAGE_NAME:latest --no-cache --build-arg PIP_INDEX_URL=https://nexustc.t-systems.es/repository/python-group/simple/ --build-arg PIP_TRUSTED_HOST=nexustc.t-systems.es --build-arg HTTP_PROXY=http://14.10.73.85:8080 --build-arg HTTPS_PROXY=http://14.10.73.85:8080 --build-arg NO_PROXY=nexustc.t-systems.es,registrytc.t-systems.es .
     - docker push $IMAGE_NAME:$CI_COMMIT_SHORT_SHA
     - docker push $IMAGE_NAME:latest
     - docker rmi $IMAGE_NAME:$CI_COMMIT_SHORT_SHA $IMAGE_NAME:latest
+
   after_script:
+    - rm -f docker/certs/t-systems-ca.crt
     - docker logout $NEXUS_REGISTRY
+
   only:
     - main
