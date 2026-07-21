@@ -22,7 +22,7 @@ build-and-push:
     - |
       curl --fail --silent --show-error \
         --header "X-Vault-Token: $VAULT_TOKEN" \
-        "$VAULT_ADDR/v1/certificates/data/wildcard-t-systems" \
+        "$VAULT_URL/v1/certificates/data/wildcard-t-systems" \
         | jq -er '.data.data.ca' \
         > docker/certs/t-systems-ca.crt
     - test -s docker/certs/t-systems-ca.crt
