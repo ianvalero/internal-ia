@@ -10,6 +10,7 @@ build-and-push:
 
   before_script:
     - docker login -u $NEXUS_USER -p $NEXUS_PASSWORD $NEXUS_REGISTRY
+    - mkdir -p docker/certs
     - |
       curl --fail --silent --show-error \
         --header "X-Vault-Token: $VAULT_TOKEN" \
