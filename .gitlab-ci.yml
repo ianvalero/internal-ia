@@ -7,17 +7,8 @@ variables:
 
 build-and-push:
   stage: build
-  image: docker:24
-  services:
-    - name: docker:24-dind
-      command: ["--storage-driver=vfs"]
-
-  variables:
-    DOCKER_TLS_CERTDIR: "/certs"
-    DOCKER_DRIVER: vfs
 
   before_script:
-    - apk add --no-cache curl jq ca-certificates
     - docker login -u $NEXUS_USER -p $NEXUS_PASSWORD $NEXUS_REGISTRY
     - |
       curl --fail --silent --show-error \
