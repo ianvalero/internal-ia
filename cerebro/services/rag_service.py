@@ -24,7 +24,7 @@ class RAGService:
 
     async def retrieve(self, model_name: str, query: str, min_score: float = 0.5) -> list:
         index = self._get_index(model_name=model_name)
-        retriever = index.as_retriever(similarity_top_k=10)
+        retriever = index.as_retriever(similarity_top_k=5)
 
         nodes = await retriever.aretrieve(query)
         return [node for node in nodes if node.score >= min_score]

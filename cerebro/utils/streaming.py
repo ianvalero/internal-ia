@@ -1,38 +1,65 @@
-import time
 import json
+import time
+import uuid
+from collections.abc import AsyncIterator
 
-async def stream_response(response_text: str, model: str):
-    """Genera la respuesta en formato SSE (Server-Sent Events) que espera LibreChat."""
+async def stream_llm_response(
+    token_stream: AsyncIterator[str],
+    model: str,
+):
+    completion_id = f"chatcmpl-{uuid.uuid4().hex}"
 
-    chunk_size = 10
-    for i in range(0, len(response_text), chunk_size):
-        chunk = response_text[i:i + chunk_size]
-        data = {
-            "id": "dt-chat-rag",
-            "object": "chat.completion.chunk",
-            "created": int(time.time()),
-            "model": model,
-            "choices": [{
-                "index": 0,
-                "delta": {
-                    "role": "assistant",
-                    "content": chunk
-                },
-                "finish_reason": None
-            }]
-        }
-        yield f"data: {json.dumps(data)}\n\n"
-
-    final = {
-        "id": "dt-chat-rag",
+    initial = {
+        "id": completion_id,
         "object": "chat.completion.chunk",
         "created": int(time.time()),
         "model": model,
-        "choices": [{
-            "index": 0,
-            "delta": {},
-            "finish_reason": "stop"
-        }]
+        "choices": [
+            {
+                "index": 0,
+                "delta": {
+                    "role": "assistant",
+                    "content": "",
+                },
+                "finish_reason": None,
+            }
+        ],
     }
-    yield f"data: {json.dumps(final)}\n\n"
+
+    yield f"data: {json.dumps(initial, ensure_ascii=False)}\n\n"
+
+    async for token in token_stream:
+        data = {
+            "id": completion_id,
+            "object": "chat.completion.chunk",
+            "created": int(time.time()),
+            "model": model,
+            "choices": [
+                {
+                    "index": 0,
+                    "delta": {
+                        "content": token,
+                    },
+                    "finish_reason": None,
+                }
+            ],
+        }
+
+        yield f"data: {json.dumps(data, ensure_ascii=False)}\n\n"
+
+    final = {
+        "id": completion_id,
+        "object": "chat.completion.chunk",
+        "created": int(time.time()),
+        "model": model,
+        "choices": [
+            {
+                "index": 0,
+                "delta": {},
+                "finish_reason": "stop",
+            }
+        ],
+    }
+
+    yield f"data: {json.dumps(final, ensure_ascii=False)}\n\n"
     yield "data: [DONE]\n\n"

@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+
 from llama_index.llms.openai_like import OpenAILike
 from llama_index.core import PromptTemplate
 
@@ -7,29 +9,33 @@ class LLMService:
     def __init__(self):
         self._llm_cache: dict = {}
 
-    async def generate(self, model_name: str, query: str, nodes: list = None, history: list = None) -> str:
-        if nodes is None:
-            nodes = []
-        if history is None:
-            history = []
+    async def stream_generate(
+        self,
+        model_name: str,
+        query: str,
+        nodes: list | None = None,
+        history: list | None = None,
+        max_tokens: int = 150,
+    ) -> AsyncGenerator[str, None]:
+        nodes = nodes or []
+        history = history or []
 
-        context = "\n\n".join([node.get_content() for node in nodes])
+        context = "\n\n".join(node.get_content() for node in nodes)
 
-        history_text = "\n".join([
+        history_text = "\n".join(
             f"{'user' if msg.role == 'user' else 'assistant'}: {msg.content}"
             for msg in history
-        ]) if history else ""
-
-        template = self._get_qa_template(chat_template=registry.get(model_name).chat_template)
-        prompt = template.format(
-            context_str=context,
-            history_str=history_text,
-            query_str=query
         )
 
+        template = self._get_qa_template(chat_template=registry.get(model_name).chat_template)
+        prompt = template.format(context_str=context, history_str=history_text, query_str=query)
+
         llm = self._get_llm(model_name)
-        response = await llm.acomplete(prompt)
-        return str(response)
+        stream = await llm.astream_complete(prompt, max_tokens=max_tokens)
+
+        async for chunk in stream:
+            if chunk.delta:
+                yield chunk.delta
 
     def _get_llm(self, model_name: str) -> OpenAILike:
         if model_name not in self._llm_cache:
@@ -43,7 +49,8 @@ class LLMService:
                 is_chat_model=True,
                 timeout=model.llm.timeout,
                 max_retries=model.llm.max_retries,
-                temperature=model.llm.temperature
+                temperature=model.llm.temperature,
+                max_tokens=150, #TODO Cambiarlo por variable de entorno
             )
         return self._llm_cache[model_name]
 
