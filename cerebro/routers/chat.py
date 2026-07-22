@@ -45,7 +45,7 @@ async def chat(
         rag_service=rag_service,
         llm_service=llm_service,
         langfuse=langfuse,
-        max_tokens=min(request.max_tokens, 300),
+        max_tokens=request.max_tokens
     )
 
     return StreamingResponse(

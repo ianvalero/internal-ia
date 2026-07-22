@@ -49,8 +49,7 @@ class LLMService:
                 is_chat_model=True,
                 timeout=model.llm.timeout,
                 max_retries=model.llm.max_retries,
-                temperature=model.llm.temperature,
-                max_tokens=150, #TODO Cambiarlo por variable de entorno
+                temperature=model.llm.temperature
             )
         return self._llm_cache[model_name]
 
@@ -62,7 +61,9 @@ class LLMService:
                 "<|assistant|>\n"
             ),
             "qwen": PromptTemplate(
-                "<|im_start|>system\nEres un asistente que responde basándose en el contexto.<|im_end|>\n"
+                "<|im_start|>system\nEres un asistente que responde basándose en el contexto. "
+                "Responde con el nivel de detalle necesario para resolver la pregunta. No omitas pasos importantes. "
+                "Evita repeticiones y contenido redundante.<|im_end|>\n"
                 "<|im_start|>user\nContexto:\n{context_str}\n\nHistorial:\n{history_str}\n\nPregunta: {query_str}<|im_end|>\n"
                 "<|im_start|>assistant\n"
             ),
